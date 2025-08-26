@@ -1,5 +1,6 @@
 use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
 use base64::Engine;
+use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslVerifyMode};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
@@ -30,6 +31,21 @@ fn is_key_value_valid(key_value: &str) -> bool {
     }
 }
 
+fn build_tls_configuration() -> SslAcceptorBuilder {
+    let mut builder = SslAcceptor::mozilla_modern_v5(SslMethod::tls()).unwrap();
+
+    builder.set_ca_file("certificates/root.crt").unwrap();
+    builder
+        .set_private_key_file("certificates/gateway_1.key", SslFiletype::PEM)
+        .unwrap();
+    builder
+        .set_certificate_chain_file("certificates/gateway_1.crt")
+        .unwrap();
+    builder.set_verify(SslVerifyMode::PEER | SslVerifyMode::FAIL_IF_NO_PEER_CERT);
+
+    builder
+}
+
 #[post("/kmapi/v1/ext_keys")]
 async fn ext_keys(request_body: web::Json<RequestBody>) -> impl Responder {
     let mut valid_request = request_body.target_sae_ids.len() == 1;
@@ -55,7 +71,7 @@ async fn ext_keys(request_body: web::Json<RequestBody>) -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| App::new().service(ext_keys))
-        .bind(("127.0.0.1", 8080))?
+        .bind_openssl(("127.0.0.1", 8080), build_tls_configuration())?
         .run()
         .await
 }

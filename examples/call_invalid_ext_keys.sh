@@ -1,9 +1,14 @@
 #! /bin/bash
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 echo "Calling with multiple key values in the keys element"
 curl                                              \
   -i                                              \
-  --url "http://localhost:8080/kmapi/v1/ext_keys" \
+  --url "https://localhost:8080/kmapi/v1/ext_keys" \
+  --cert "${SCRIPT_DIR}/../certificates/gateway_2.crt" \
+  --key "${SCRIPT_DIR}/../certificates/gateway_2.key" \
+  --cacert "${SCRIPT_DIR}/../certificates/root.crt" \
   --header "Content-Type: application/json"       \
   --data-raw '{
   "keys": [
@@ -25,7 +30,10 @@ curl                                              \
 echo "Calling with multiple target sae ids"
 curl                                              \
   -i                                              \
-  --url "http://localhost:8080/kmapi/v1/ext_keys" \
+  --url "https://localhost:8080/kmapi/v1/ext_keys" \
+  --cert "${SCRIPT_DIR}/../certificates/gateway_2.crt" \
+  --key "${SCRIPT_DIR}/../certificates/gateway_2.key" \
+  --cacert "${SCRIPT_DIR}/../certificates/root.crt" \
   --header "Content-Type: application/json"       \
   --data-raw '{
   "keys": [
@@ -44,7 +52,10 @@ curl                                              \
 echo "Calling with multiple key values in the keys element and target sae ids"
 curl                                              \
   -i                                              \
-  --url "http://localhost:8080/kmapi/v1/ext_keys" \
+  --url "https://localhost:8080/kmapi/v1/ext_keys" \
+  --cert "${SCRIPT_DIR}/../certificates/gateway_2.crt" \
+  --key "${SCRIPT_DIR}/../certificates/gateway_2.key" \
+  --cacert "${SCRIPT_DIR}/../certificates/root.crt" \
   --header "Content-Type: application/json"       \
   --data-raw '{
   "keys": [
@@ -67,7 +78,10 @@ curl                                              \
 echo "Calling with invalid, not equal to 256bits key size"
 curl                                              \
   -i                                              \
-  --url "http://localhost:8080/kmapi/v1/ext_keys" \
+  --url "https://localhost:8080/kmapi/v1/ext_keys" \
+  --cert "${SCRIPT_DIR}/../certificates/gateway_2.crt" \
+  --key "${SCRIPT_DIR}/../certificates/gateway_2.key" \
+  --cacert "${SCRIPT_DIR}/../certificates/root.crt" \
   --header "Content-Type: application/json"       \
   --data-raw '{
   "keys": [
