@@ -1,7 +1,11 @@
+mod config;
+
 use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
 use base64::Engine;
 use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslVerifyMode};
 use serde::{Deserialize, Serialize};
+
+use crate::config::Config;
 
 #[derive(Deserialize)]
 struct KeyElement {
@@ -31,15 +35,15 @@ fn is_key_value_valid(key_value: &str) -> bool {
     }
 }
 
-fn build_tls_configuration() -> SslAcceptorBuilder {
+fn build_tls_configuration(config: &Config) -> SslAcceptorBuilder {
     let mut builder = SslAcceptor::mozilla_modern_v5(SslMethod::tls()).unwrap();
 
-    builder.set_ca_file("certificates/root.pem").unwrap();
+    builder.set_ca_file(config.root_cert.clone()).unwrap();
     builder
-        .set_private_key_file("certificates/gateway.key", SslFiletype::PEM)
+        .set_private_key_file(config.private_key.clone(), SslFiletype::PEM)
         .unwrap();
     builder
-        .set_certificate_chain_file("certificates/gateway.pem")
+        .set_certificate_chain_file(config.public_cert.clone())
         .unwrap();
     builder.set_verify(SslVerifyMode::PEER | SslVerifyMode::FAIL_IF_NO_PEER_CERT);
 
@@ -70,8 +74,13 @@ async fn ext_keys(request_body: web::Json<RequestBody>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    let config = Config::new();
+
     HttpServer::new(|| App::new().service(ext_keys))
-        .bind_openssl(("127.0.0.1", 8080), build_tls_configuration())?
+        .bind_openssl(
+            ("127.0.0.1", config.port_num),
+            build_tls_configuration(&config),
+        )?
         .run()
         .await
 }

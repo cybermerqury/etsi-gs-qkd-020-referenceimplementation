@@ -1,6 +1,9 @@
+include ./.env
+
 # Environment variables.
 CURDIR=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 CERTS_DIR?=$(CURDIR)certs
+export $(shell sed 's/=.*//' .env)
 
 .PHONY: setup run_server run_server_release clean
 .PHONY: run_tests run_ext_keys run_invalid_ext_keys
