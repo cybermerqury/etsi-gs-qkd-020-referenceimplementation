@@ -36,10 +36,10 @@ fn build_tls_configuration() -> SslAcceptorBuilder {
 
     builder.set_ca_file("certificates/root.crt").unwrap();
     builder
-        .set_private_key_file("certificates/gateway_1.key", SslFiletype::PEM)
+        .set_private_key_file("certificates/gateway.key", SslFiletype::PEM)
         .unwrap();
     builder
-        .set_certificate_chain_file("certificates/gateway_1.crt")
+        .set_certificate_chain_file("certificates/gateway.crt")
         .unwrap();
     builder.set_verify(SslVerifyMode::PEER | SslVerifyMode::FAIL_IF_NO_PEER_CERT);
 
