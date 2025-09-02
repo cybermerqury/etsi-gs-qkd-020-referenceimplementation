@@ -5,9 +5,9 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 curl \
   -i \
   --url "https://localhost:8080/kmapi/v1/ext_keys" \
-  --cert "${SCRIPT_DIR}/../certificates/gateway_2.crt" \
+  --cert "${SCRIPT_DIR}/../certificates/gateway_2.pem" \
   --key "${SCRIPT_DIR}/../certificates/gateway_2.key" \
-  --cacert "${SCRIPT_DIR}/../certificates/root.crt" \
+  --cacert "${SCRIPT_DIR}/../certificates/root.pem" \
   --header "Content-Type: application/json" \
   --data-raw '{
   "keys": [

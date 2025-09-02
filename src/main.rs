@@ -34,12 +34,12 @@ fn is_key_value_valid(key_value: &str) -> bool {
 fn build_tls_configuration() -> SslAcceptorBuilder {
     let mut builder = SslAcceptor::mozilla_modern_v5(SslMethod::tls()).unwrap();
 
-    builder.set_ca_file("certificates/root.crt").unwrap();
+    builder.set_ca_file("certificates/root.pem").unwrap();
     builder
         .set_private_key_file("certificates/gateway.key", SslFiletype::PEM)
         .unwrap();
     builder
-        .set_certificate_chain_file("certificates/gateway.crt")
+        .set_certificate_chain_file("certificates/gateway.pem")
         .unwrap();
     builder.set_verify(SslVerifyMode::PEER | SslVerifyMode::FAIL_IF_NO_PEER_CERT);
 

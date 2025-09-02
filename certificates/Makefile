@@ -8,11 +8,11 @@ ifndef VERBOSE
 .SILENT:
 endif
 
-.PRECIOUS: %.crt
+.PRECIOUS: %.pem
 
 LOG = output.log
 
-ROOT_CRT = root.crt
+ROOT_CRT = root.pem
 ROOT_KEY  = root.key
 
 SERIAL_NUM = 1
