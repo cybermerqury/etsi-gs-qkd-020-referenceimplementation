@@ -40,10 +40,10 @@ fn build_tls_configuration(config: &Config) -> SslAcceptorBuilder {
 
     builder.set_ca_file(&config.root_cert).unwrap();
     builder
-        .set_private_key_file(config.private_key.clone(), SslFiletype::PEM)
+        .set_private_key_file(&config.private_key, SslFiletype::PEM)
         .unwrap();
     builder
-        .set_certificate_chain_file(config.public_cert.clone())
+        .set_certificate_chain_file(&config.public_cert)
         .unwrap();
     builder.set_verify(SslVerifyMode::PEER | SslVerifyMode::FAIL_IF_NO_PEER_CERT);
 
