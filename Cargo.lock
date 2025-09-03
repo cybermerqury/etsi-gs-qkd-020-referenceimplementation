@@ -454,6 +454,7 @@ dependencies = [
  "openssl",
  "serde",
  "serde_json",
+ "tracing",
 ]
 
 [[package]]

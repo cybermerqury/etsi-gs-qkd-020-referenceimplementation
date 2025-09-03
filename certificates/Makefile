@@ -8,18 +8,18 @@ ifndef VERBOSE
 .SILENT:
 endif
 
-.PRECIOUS: %.crt
+.PRECIOUS: %.pem
 
 LOG = output.log
 
-ROOT_CRT = root.crt
+ROOT_CRT = root.pem
 ROOT_KEY  = root.key
 
 SERIAL_NUM = 1
 
 default: certs
 
-certs: gateway_1.pem gateway_2.pem
+certs: gateway.pem gateway_2.pem
 
 %.pem: %.crt
 	printf "Generating pem file '%s'...\n" $@
