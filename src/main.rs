@@ -38,7 +38,7 @@ fn is_key_value_valid(key_value: &str) -> bool {
 fn build_tls_configuration(config: &Config) -> SslAcceptorBuilder {
     let mut builder = SslAcceptor::mozilla_modern_v5(SslMethod::tls()).unwrap();
 
-    builder.set_ca_file(config.root_cert.clone()).unwrap();
+    builder.set_ca_file(&config.root_cert).unwrap();
     builder
         .set_private_key_file(config.private_key.clone(), SslFiletype::PEM)
         .unwrap();
