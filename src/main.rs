@@ -78,7 +78,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| App::new().service(ext_keys))
         .bind_openssl(
-            ("127.0.0.1", config.port_num),
+            (config.ip_addr.as_str(), config.port_num),
             build_tls_configuration(&config),
         )?
         .run()

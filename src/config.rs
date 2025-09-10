@@ -7,6 +7,7 @@ static ENV_ROOT_CERT: &str = "ETSI_020_REF_IMPL_ROOT_CERT";
 static ENV_PRIVATE_KEY: &str = "ETSI_020_REF_IMPL_PRIVATE_KEY";
 static ENV_PUBLIC_CERT: &str = "ETSI_020_REF_IMPL_PUBLIC_CERT";
 static ENV_PORT_NUM: &str = "ETSI_020_REF_IMPL_PORT_NUM";
+static ENV_IP_ADDR: &str = "ETSI_020_REF_IMPL_IP_ADDR";
 
 #[derive(Debug)]
 pub struct Config {
@@ -14,6 +15,7 @@ pub struct Config {
     pub private_key: String,
     pub public_cert: String,
     pub port_num: u16,
+    pub ip_addr: String,
 }
 
 impl Config {
@@ -23,6 +25,7 @@ impl Config {
             private_key: Self::extract_string_value(ENV_PRIVATE_KEY),
             public_cert: Self::extract_string_value(ENV_PUBLIC_CERT),
             port_num: Self::extract_u16_value(ENV_PORT_NUM),
+            ip_addr: Self::extract_string_value(ENV_IP_ADDR),
         }
     }
 
