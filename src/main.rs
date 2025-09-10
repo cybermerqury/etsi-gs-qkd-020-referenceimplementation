@@ -7,13 +7,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct KeyElement {
     key_id: String,
     value: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct RequestBody {
     keys: Vec<KeyElement>,
     initiator_sae_id: String,
@@ -52,6 +52,8 @@ fn build_tls_configuration(config: &Config) -> SslAcceptorBuilder {
 
 #[post("/kmapi/v1/ext_keys")]
 async fn ext_keys(request_body: web::Json<RequestBody>) -> impl Responder {
+    println!("Request received: {request_body:?}.");
+
     let mut valid_request = request_body.target_sae_ids.len() == 1;
     valid_request = valid_request && (!request_body.initiator_sae_id.is_empty());
     valid_request = valid_request
