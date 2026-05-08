@@ -4,20 +4,23 @@ use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
 use base64::Engine;
 use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslVerifyMode};
 use serde::{Deserialize, Serialize};
+use url::Url;
+use uuid::Uuid;
 
 use crate::config::Config;
 
-#[derive(Debug, Deserialize)]
-struct KeyElement {
-    key_id: String,
-    value: String,
+#[derive(Deserialize, Serialize, Debug)]
+pub struct KeyValueElement {
+    pub key_id: Uuid,
+    pub value: String, // This is a base64 string
 }
 
-#[derive(Debug, Deserialize)]
-struct RequestBody {
-    keys: Vec<KeyElement>,
-    initiator_sae_id: String,
-    target_sae_ids: Vec<String>,
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ExtKeysRequest {
+    pub keys: Vec<KeyValueElement>,
+    pub initiator_sae_id: String,
+    pub target_sae_ids: Vec<String>,
+    pub ack_callback_url: Url,
 }
 
 #[derive(Serialize)]
@@ -51,7 +54,7 @@ fn build_tls_configuration(config: &Config) -> SslAcceptorBuilder {
 }
 
 #[post("/kmapi/v1/ext_keys")]
-async fn ext_keys(request_body: web::Json<RequestBody>) -> impl Responder {
+async fn ext_keys(request_body: web::Json<ExtKeysRequest>) -> impl Responder {
     println!("Request received: {request_body:?}.");
 
     let mut valid_request = request_body.target_sae_ids.len() == 1;
@@ -77,6 +80,8 @@ async fn ext_keys(request_body: web::Json<RequestBody>) -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let config = Config::new();
+
+    println!("Listening on {}:{}", config.ip_addr, config.port_num);
 
     HttpServer::new(|| App::new().service(ext_keys))
         .bind_openssl(
