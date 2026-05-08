@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{post, web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{ErrorResponse, KeyIdElement};
@@ -28,6 +28,7 @@ pub struct AckRequest {
     pub message: String,
 }
 
+#[post("/kmapi/v1/ack")]
 pub async fn ack(request_body: web::Json<AckRequest>) -> impl Responder {
     if let Some(err) = validate_request(&request_body) {
         return HttpResponse::BadRequest().json(err);

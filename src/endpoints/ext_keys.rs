@@ -1,6 +1,7 @@
-use std::{collections::HashMap, error::Error, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
 use actix_web::{post, web, HttpResponse, Responder};
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -29,33 +30,37 @@ async fn call_ack(
 
     println!("Calling ACK url {}", request.ack_callback_url);
 
-    let ack_url_response = app_state
+    let ack_url_response = match app_state
         .callback_client
         .post(request.ack_callback_url)
         .send()
         .await
-        .map(|r| r.error_for_status());
-
-    match ack_url_response {
-        Ok(Ok(response)) => {
-            let text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Couldn't extract text from response.".to_string());
-
-            println!("ACK url call OK. Response: {text}")
-        }
-        Ok(Err(e)) => {
-            println!("ACK url call ERR. Status: {:?}", e.status());
-        }
+    {
+        Ok(res) => res,
         Err(e) => {
-            println!(
-                "Failed to call ACK url. Error: '{:?}', status: {:?}",
-                e.source(),
-                e.status()
-            )
+            println!("Failed to send 'ack' request. Error: {:?}", e);
+
+            return;
         }
+    };
+
+    let status = ack_url_response.status();
+    if status != StatusCode::OK {
+        println!("ACK url call ERR. Status: {:?}", ack_url_response.status());
+
+        match ack_url_response.json::<ErrorResponse>().await {
+            Ok(err) => {
+                println!("ACK response body:\n\t{:#?}", err);
+            }
+            Err(e) => {
+                println!("Could not parse ACK response. Error: {}, {:?}", e, e)
+            }
+        }
+
+        return;
     }
+
+    println!("ACK url call OK.")
 }
 
 #[post("/kmapi/v1/ext_keys")]

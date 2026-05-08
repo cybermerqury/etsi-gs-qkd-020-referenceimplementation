@@ -26,7 +26,7 @@ pub struct KeyIdElement {
     pub key_id: Uuid,
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct ErrorResponse {
     #[serde(rename = "type")]
     pub type_name: String,
