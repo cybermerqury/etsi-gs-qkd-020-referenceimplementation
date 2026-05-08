@@ -1,7 +1,6 @@
 use std::{collections::HashMap, error::Error, time::Duration};
 
 use actix_web::{post, web, HttpResponse, Responder};
-use base64::Engine;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -69,8 +68,7 @@ async fn ext_keys(
     let mut valid_request = request_body.target_sae_ids.len() == 1;
     valid_request = valid_request && (!request_body.initiator_sae_id.is_empty());
     valid_request = valid_request
-        && ((request_body.keys.len() == 1)
-            && is_key_value_valid(request_body.keys[0].value.as_str()));
+        && ((request_body.keys.len() == 1) && request_body.keys[0].is_key_value_valid());
 
     if valid_request {
         println!("Valid response, spawning worker.");
@@ -90,14 +88,5 @@ async fn ext_keys(
         };
 
         HttpResponse::InternalServerError().json(response_body)
-    }
-}
-
-fn is_key_value_valid(key_value: &str) -> bool {
-    match base64::engine::general_purpose::STANDARD.decode(key_value) {
-        Ok(decoded_key) => {
-            decoded_key.len() == 32 // Keys must be 256bits long
-        }
-        Err(_) => false,
     }
 }
