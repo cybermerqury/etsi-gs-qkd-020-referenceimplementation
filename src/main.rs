@@ -1,5 +1,7 @@
 mod config;
 
+use std::time::Duration;
+
 use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
 use base64::Engine;
 use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslVerifyMode};
@@ -53,6 +55,33 @@ fn build_tls_configuration(config: &Config) -> SslAcceptorBuilder {
     builder
 }
 
+async fn call_ack(sleep_duration: Duration, request: ExtKeysRequest) {
+    tokio::time::sleep(sleep_duration).await;
+
+    println!("Calling ACK url {}", request.ack_callback_url);
+
+    let ack_url_response = reqwest::get(request.ack_callback_url)
+        .await
+        .map(|r| r.error_for_status());
+
+    match ack_url_response {
+        Ok(Ok(response)) => {
+            let text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Couldn't extract text from response.".to_string());
+
+            println!("ACK url call OK. Response: {text}")
+        }
+        Ok(Err(e)) => {
+            println!("ACK url call ERR. Status: {:?}", e.status());
+        }
+        Err(e) => {
+            println!("Failed to call ACK url. Error: {e}")
+        }
+    }
+}
+
 #[post("/kmapi/v1/ext_keys")]
 async fn ext_keys(request_body: web::Json<ExtKeysRequest>) -> impl Responder {
     println!("Request received: {request_body:?}.");
@@ -64,8 +93,13 @@ async fn ext_keys(request_body: web::Json<ExtKeysRequest>) -> impl Responder {
             && is_key_value_valid(request_body.keys[0].value.as_str()));
 
     if valid_request {
-        println!("Valid response");
-        HttpResponse::Ok().finish()
+        println!("Valid response, spawning worker.");
+
+        let sleep_duration = Duration::from_secs(3);
+
+        actix_web::rt::spawn(call_ack(sleep_duration, request_body.0));
+
+        HttpResponse::Accepted().finish()
     } else {
         println!("Invalid response");
         let response_body = ErrorResponse {

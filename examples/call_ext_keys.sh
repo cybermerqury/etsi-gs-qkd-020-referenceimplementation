@@ -4,7 +4,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 curl \
   -i \
-  --url "https://localhost:8080/kmapi/v1/ext_keys" \
+  --url "https://localhost:8888/kmapi/v1/ext_keys" \
   --cert "${SCRIPT_DIR}/../certificates/gateway_2.pem" \
   --key "${SCRIPT_DIR}/../certificates/gateway_2.key" \
   --cacert "${SCRIPT_DIR}/../certificates/root.pem" \
@@ -19,5 +19,6 @@ curl \
   "initiator_sae_id": "encryptor1",
   "target_sae_ids": [
     "encryptor2"
-  ]
+  ],
+  "ack_callback_url": "https://localhost:8889/kmapi/v1/ack"
 }'
