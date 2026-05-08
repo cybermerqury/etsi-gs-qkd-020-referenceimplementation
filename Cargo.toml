@@ -2,6 +2,15 @@
 name = "etsi-020-ref-impl"
 version = "0.1.0"
 edition = "2021"
+default-run = "server"
+
+[[bin]]
+name = "server"
+path = "src/main.rs"
+
+[[bin]]
+name = "call_ext_keys_async"
+path = "src/bin/call_ext_keys_async.rs"
 
 [dependencies]
 actix-web = {version = "4.13.0", features = ["openssl"]}
@@ -12,5 +21,5 @@ serde_json = "1.0"
 openssl = { version = "0.10.79" }
 uuid = { version = "1.23.1", features = ["serde", "v7"] }
 url = { version = "2.5.8", features = ["serde"] }
-tokio = { version = "1.52.2", features = ["time"] }
+tokio = { version = "1.52.2", features = ["full", "time"] }
 reqwest = "0.13.3"
