@@ -56,3 +56,8 @@ build_clean:
 	cargo clean
 
 # ------------------------------------------------------------------------------
+# Run examples
+# ------------
+
+example_call_ext_keys_async:
+	cargo run --bin call_ext_keys_async

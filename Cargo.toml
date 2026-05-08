@@ -4,13 +4,13 @@ version = "0.1.0"
 edition = "2021"
 default-run = "server"
 
+[lib]
+name = "ref_impl_lib"
+path = "src/lib.rs"
+
 [[bin]]
 name = "server"
 path = "src/main.rs"
-
-[[bin]]
-name = "call_ext_keys_async"
-path = "src/bin/call_ext_keys_async.rs"
 
 [dependencies]
 actix-web = {version = "4.13.0", features = ["openssl"]}

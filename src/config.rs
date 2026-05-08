@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: © 2023 Merqury Cybersecurity Ltd <info@merqury.eu>
 // SPDX-License-Identifier: AGPL-3.0-only
-use std::env;
+use reqwest::{Certificate, Client, Identity};
+use std::{env, error::Error, time::Duration};
 use tracing::error;
 
 static ENV_ROOT_CERT: &str = "ETSI_020_REF_IMPL_ROOT_CERT";
@@ -49,5 +50,29 @@ impl Config {
                 panic!("Environment variable '{}' not set", var_name)
             }
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct AppState {
+    pub callback_client: Client,
+}
+
+impl AppState {
+    pub fn new(config: &Config) -> Result<Self, Box<dyn Error>> {
+        let root_cert = Certificate::from_pem(&std::fs::read(&config.root_cert)?)?;
+        let client_cert = std::fs::read(&config.public_cert)?;
+        let client_key = std::fs::read(&config.private_key)?;
+        let identity = Identity::from_pem(&[client_cert, client_key].concat())?;
+
+        let client = reqwest::Client::builder()
+            .tls_certs_only([root_cert])
+            .identity(identity)
+            .timeout(Duration::from_secs(10))
+            .build()?;
+
+        Ok(Self {
+            callback_client: client,
+        })
     }
 }
