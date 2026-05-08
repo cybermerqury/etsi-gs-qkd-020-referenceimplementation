@@ -7,7 +7,8 @@ use url::Url;
 
 use crate::{
     config::AppState,
-    types::{ErrorResponse, KeyValueElement},
+    endpoints::ack::{AckRequest, AckStatus},
+    types::{ErrorResponse, KeyIdElement, KeyValueElement},
 };
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -30,9 +31,22 @@ async fn call_ack(
 
     println!("Calling ACK url {}", request.ack_callback_url);
 
+    let request_body = AckRequest {
+        ack_status: AckStatus::Relayed,
+        initiator_sae_id: request.initiator_sae_id,
+        target_sae_id: request.target_sae_ids[0].clone(),
+        message: "TEST".to_string(),
+        key_ids: request
+            .keys
+            .into_iter()
+            .map(|kv| KeyIdElement { key_id: kv.key_id })
+            .collect(),
+    };
+
     let ack_url_response = match app_state
         .callback_client
         .post(request.ack_callback_url)
+        .json(&request_body)
         .send()
         .await
     {
