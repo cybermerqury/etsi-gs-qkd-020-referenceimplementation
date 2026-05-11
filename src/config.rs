@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: © 2023 Merqury Cybersecurity Ltd <info@merqury.eu>
 // SPDX-License-Identifier: AGPL-3.0-only
-use reqwest::{Certificate, Client, Identity};
-use std::{any::type_name, env, error::Error, str::FromStr, time::Duration};
+use std::{any::type_name, env, error::Error, str::FromStr};
 use tracing::error;
+
+use crate::client::Etsi020Client;
 
 const ENV_ROOT_CERT: &str = "ETSI_020_REF_IMPL_ROOT_CERT";
 const ENV_PRIVATE_KEY: &str = "ETSI_020_REF_IMPL_PRIVATE_KEY";
@@ -85,21 +86,13 @@ impl Config {
 #[derive(Clone)]
 pub struct AppState {
     pub config: Config,
-    pub callback_client: Client,
+    pub callback_client: Etsi020Client,
 }
 
 impl AppState {
     pub fn new(config: Config) -> Result<Self, Box<dyn Error>> {
-        let root_cert = Certificate::from_pem(&std::fs::read(&config.root_cert)?)?;
-        let client_cert = std::fs::read(&config.public_cert)?;
-        let client_key = std::fs::read(&config.private_key)?;
-        let identity = Identity::from_pem(&[client_cert, client_key].concat())?;
-
-        let client = reqwest::Client::builder()
-            .tls_certs_only([root_cert])
-            .identity(identity)
-            .timeout(Duration::from_secs(10))
-            .build()?;
+        let client =
+            Etsi020Client::new(&config.root_cert, &config.public_cert, &config.private_key)?;
 
         Ok(Self {
             config,

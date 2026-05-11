@@ -20,6 +20,6 @@ curl \
   "target_sae_ids": [
     "3rd_party_encryptor_1"
   ],
-  "ack_callback_url": "https://localhost:8888/kmapi/v1/ext_keys/ack",
+  "ack_callback_url": "https://localhost:8889/kmapi/v1/ext_keys/ack",
   "extension_mandatory": {}
 }'

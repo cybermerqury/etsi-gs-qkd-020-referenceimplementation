@@ -37,7 +37,7 @@ async fn call_ack(
         .map(|kv| KeyIdElement { key_id: kv.key_id })
         .collect();
 
-    let request_body = AckRequest {
+    let ack_body = AckRequest {
         ack_status: AckStatus::Relayed,
         initiator_sae_id: request.initiator_sae_id,
         target_sae_id: request.target_sae_ids[0].clone(),
@@ -45,35 +45,13 @@ async fn call_ack(
         key_ids: key_ids,
     };
 
-    let ack_url_response = match app_state
+    match app_state
         .callback_client
-        .post(request.ack_callback_url)
-        .json(&request_body)
-        .send()
+        .ack(request.ack_callback_url, ack_body)
         .await
     {
-        Ok(res) => res,
-        Err(e) => {
-            println!("Failed to send 'ack' request. Error: {:?}", e);
-
-            return;
-        }
-    };
-
-    let status = ack_url_response.status();
-    if status != StatusCode::OK {
-        println!("ACK url call ERR. Status: {:?}", ack_url_response.status());
-
-        match ack_url_response.json::<ErrorResponse>().await {
-            Ok(err) => {
-                println!("ACK response body:\n\t{:#?}", err);
-            }
-            Err(e) => {
-                println!("Could not parse ACK response. Error: {}, {:?}", e, e);
-            }
-        }
-    } else {
-        println!("ACK url call OK.");
+        Ok(()) => println!("ext_keys servicing concluded."),
+        Err(e) => println!("Error calling 'ack' for 'ext_keys'. Error: {e}"),
     }
 }
 
