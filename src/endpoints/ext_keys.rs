@@ -31,16 +31,18 @@ async fn call_ack(
 
     println!("Calling ACK url {}", request.ack_callback_url);
 
+    let key_ids = request
+        .keys
+        .into_iter()
+        .map(|kv| KeyIdElement { key_id: kv.key_id })
+        .collect();
+
     let request_body = AckRequest {
         ack_status: AckStatus::Relayed,
         initiator_sae_id: request.initiator_sae_id,
         target_sae_id: request.target_sae_ids[0].clone(),
         message: "TEST".to_string(),
-        key_ids: request
-            .keys
-            .into_iter()
-            .map(|kv| KeyIdElement { key_id: kv.key_id })
-            .collect(),
+        key_ids: key_ids,
     };
 
     let ack_url_response = match app_state
@@ -67,14 +69,12 @@ async fn call_ack(
                 println!("ACK response body:\n\t{:#?}", err);
             }
             Err(e) => {
-                println!("Could not parse ACK response. Error: {}, {:?}", e, e)
+                println!("Could not parse ACK response. Error: {}, {:?}", e, e);
             }
         }
-
-        return;
+    } else {
+        println!("ACK url call OK.");
     }
-
-    println!("ACK url call OK.")
 }
 
 #[post("/kmapi/v1/ext_keys")]
