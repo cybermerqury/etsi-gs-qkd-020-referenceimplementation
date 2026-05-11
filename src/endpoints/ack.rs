@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error};
 
 use actix_web::{post, web, HttpResponse, Responder};
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
 use crate::types::{ErrorResponse, KeyIdElement};
@@ -34,6 +35,19 @@ pub async fn ack(request_body: web::Json<AckRequest>) -> impl Responder {
         return HttpResponse::BadRequest().json(err);
     }
 
+    if let Err(e) = service_request(request_body.0).await {
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            status: StatusCode::INTERNAL_SERVER_ERROR.as_u16().into(),
+            title: "Error processing ACK request".to_string(),
+            type_name: StatusCode::INTERNAL_SERVER_ERROR.as_str().to_string(),
+            details: HashMap::from_iter([("server_error".to_string(), e.to_string())]),
+        });
+    }
+
+    HttpResponse::Ok().finish()
+}
+
+async fn service_request(request_body: AckRequest) -> Result<(), Box<dyn Error>> {
     println!(
         "ACK: Received request. status: {:?}, initiator: '{}', target: '{}', message: '{}'",
         request_body.ack_status,
@@ -46,7 +60,7 @@ pub async fn ack(request_body: web::Json<AckRequest>) -> impl Responder {
         println!("ACK: * Acknowledging key_id {}", key_id.key_id);
     }
 
-    HttpResponse::Ok().finish()
+    Ok(())
 }
 
 fn validate_request(request_body: &AckRequest) -> Option<ErrorResponse> {

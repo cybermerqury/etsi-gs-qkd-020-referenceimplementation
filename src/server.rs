@@ -1,4 +1,4 @@
-use std::{net::ToSocketAddrs, path::Path};
+use std::path::Path;
 
 use actix_web::{dev::Server, web, App, HttpServer};
 use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslVerifyMode};
@@ -23,18 +23,16 @@ pub fn build_tls_configuration(
     builder
 }
 
-pub fn run_server(
-    app_state: AppState,
-    addr: impl ToSocketAddrs,
-    tls_config: SslAcceptorBuilder,
-) -> std::io::Result<Server> {
+pub fn run_server(app_state: AppState, tls_config: SslAcceptorBuilder) -> std::io::Result<Server> {
+    let bind_addr = (app_state.config.ip_addr.clone(), app_state.config.port_num);
+
     let server = HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(app_state.clone()))
             .service(ext_keys)
             .service(ack)
     })
-    .bind_openssl(addr, tls_config)?
+    .bind_openssl(bind_addr, tls_config)?
     .run();
 
     Ok(server)

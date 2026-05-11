@@ -9,7 +9,10 @@ use ref_impl_lib::{
 async fn main() -> std::io::Result<()> {
     let config = Config::new();
 
-    let app_state = match AppState::new(&config) {
+    let tls_config =
+        build_tls_configuration(&config.root_cert, &config.public_cert, &config.private_key);
+
+    let app_state = match AppState::new(config) {
         Ok(state) => state,
         Err(e) => {
             println!("Failed to initialise app state. Exiting. Error: {e}");
@@ -17,12 +20,12 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
-    println!("Listening on {}:{}", config.ip_addr, config.port_num);
+    println!(
+        "Listening on {}:{}",
+        app_state.config.ip_addr, app_state.config.port_num
+    );
 
-    let tls_config =
-        build_tls_configuration(&config.root_cert, &config.public_cert, &config.private_key);
-
-    let server = run_server(app_state, (config.ip_addr, config.port_num), tls_config)?;
+    let server = run_server(app_state, tls_config)?;
 
     server.await
 }
