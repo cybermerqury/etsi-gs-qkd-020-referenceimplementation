@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration};
+use std::time::Duration;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use reqwest::StatusCode;
@@ -89,6 +89,34 @@ async fn ext_keys(
     valid_request = valid_request
         && ((request_body.keys.len() == 1) && request_body.keys[0].is_key_value_valid());
 
+    if !app_state
+        .config
+        .intra_network_sae_ids
+        .contains(&request_body.initiator_sae_id)
+    {
+        return HttpResponse::BadRequest().json(ErrorResponse::new(
+            "Invalid parameter",
+            400,
+            "Bad initiator_sae_id. Passed SAE ID is not recognized.",
+            [("initiator_sae_id", &request_body.initiator_sae_id)],
+        ));
+    }
+
+    let missing_target_sae_ids = request_body
+        .target_sae_ids
+        .iter()
+        .filter(|sae_id| !app_state.config.third_party_sae_ids.contains(&sae_id))
+        .map(String::as_str)
+        .collect::<Vec<_>>();
+
+    if !missing_target_sae_ids.is_empty() {
+        return HttpResponse::BadRequest().json(ErrorResponse::from_status_code(
+            StatusCode::BAD_REQUEST,
+            "Bad target_sae_ids. This instance is not configured for one or more of the supplied SAE IDs.",
+            [("target_sae_ids", missing_target_sae_ids.join(","))]
+        ));
+    }
+
     if valid_request {
         println!("Valid response, spawning worker.");
 
@@ -99,12 +127,12 @@ async fn ext_keys(
         HttpResponse::Accepted().finish()
     } else {
         println!("Invalid response");
-        let response_body = ErrorResponse {
-            type_name: String::from("General Error."),
-            status: 400,
-            title: String::from("Error message"),
-            details: HashMap::from([("Details 1".to_string(), "Details 1 message".to_string())]),
-        };
+        let response_body = ErrorResponse::new(
+            "General Error",
+            400,
+            "Error message",
+            [("Details 1", "Details 1 message")],
+        );
 
         HttpResponse::InternalServerError().json(response_body)
     }

@@ -36,12 +36,11 @@ pub async fn ack(request_body: web::Json<AckRequest>) -> impl Responder {
     }
 
     if let Err(e) = service_request(request_body.0).await {
-        return HttpResponse::InternalServerError().json(ErrorResponse {
-            status: StatusCode::INTERNAL_SERVER_ERROR.as_u16().into(),
-            title: "Error processing ACK request".to_string(),
-            type_name: StatusCode::INTERNAL_SERVER_ERROR.as_str().to_string(),
-            details: HashMap::from_iter([("server_error".to_string(), e.to_string())]),
-        });
+        return HttpResponse::InternalServerError().json(ErrorResponse::from_status_code(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Error processing ACK request",
+            [("server_error", e)],
+        ));
     }
 
     HttpResponse::Ok().finish()
@@ -87,14 +86,10 @@ fn validate_request(request_body: &AckRequest) -> Option<ErrorResponse> {
     if error_details.is_empty() {
         None
     } else {
-        Some(ErrorResponse {
-            status: 400,
-            type_name: "bad_request".to_string(),
-            title: "Invalid Request".to_string(),
-            details: error_details
-                .into_iter()
-                .map(|(k, v)| (k.to_string(), v.to_string()))
-                .collect(),
-        })
+        Some(ErrorResponse::from_status_code(
+            StatusCode::BAD_REQUEST,
+            "Invalid request",
+            error_details,
+        ))
     }
 }

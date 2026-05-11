@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use base64::Engine;
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -33,4 +34,41 @@ pub struct ErrorResponse {
     pub status: u32,
     pub title: String,
     pub details: HashMap<String, String>,
+}
+
+impl ErrorResponse {
+    pub fn from_status_code<DetialsIter, K, V>(
+        status: StatusCode,
+        title: impl ToString,
+        details: DetialsIter,
+    ) -> Self
+    where
+        DetialsIter: IntoIterator<Item = (K, V)>,
+        K: ToString,
+        V: ToString,
+    {
+        Self::new(status, status.as_u16().into(), title, details)
+    }
+
+    pub fn new<DetialsIter, K, V>(
+        type_name: impl ToString,
+        status: u32,
+        title: impl ToString,
+        details: DetialsIter,
+    ) -> Self
+    where
+        DetialsIter: IntoIterator<Item = (K, V)>,
+        K: ToString,
+        V: ToString,
+    {
+        Self {
+            type_name: type_name.to_string(),
+            status,
+            title: title.to_string(),
+            details: details
+                .into_iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
+        }
+    }
 }
