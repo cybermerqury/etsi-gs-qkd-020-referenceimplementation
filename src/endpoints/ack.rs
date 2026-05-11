@@ -29,7 +29,7 @@ pub struct AckRequest {
     pub message: String,
 }
 
-#[post("/kmapi/v1/ack")]
+#[post("/kmapi/v1/ext_keys/ack")]
 pub async fn ack(request_body: web::Json<AckRequest>) -> impl Responder {
     if let Some(err) = validate_request(&request_body) {
         return HttpResponse::BadRequest().json(err);

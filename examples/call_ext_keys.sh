@@ -16,11 +16,10 @@ curl \
      "value": "wHHVxRwDJs3/bXd38GHP3oe4svTuRpZS0yCC7x4Ly+s="
    }
   ],
-  "initiator_sae_id": "encryptor1",
+  "initiator_sae_id": "encryptor_1",
   "target_sae_ids": [
-    "encryptor2"
+    "3rd_party_encryptor_1"
   ],
-  "ack_callback_url": "https://localhost:8889/kmapi/v1/ack"
+  "ack_callback_url": "https://localhost:8888/kmapi/v1/ext_keys/ack",
+  "extension_mandatory": {}
 }'
-
-# openssl s_server -accept 8889 -CAfile certificates/root.pem -cert certificates/gateway_2.pem -key certificates/gateway_2.key
