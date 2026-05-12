@@ -1,11 +1,18 @@
-use std::process::exit;
+pub mod client;
+pub mod config;
+pub mod endpoints;
+pub mod ext_keys_caller;
+pub mod server;
+pub mod types;
 
-use ref_impl_lib::{
+use std::process::exit;
+use tokio::signal::ctrl_c;
+
+use crate::{
     config::{AppState, Config},
     ext_keys_caller::ext_keys_subsystem,
     server::{build_tls_configuration, run_server},
 };
-use tokio::signal::ctrl_c;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

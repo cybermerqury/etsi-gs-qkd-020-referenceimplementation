@@ -2,15 +2,6 @@
 name = "etsi-020-ref-impl"
 version = "0.1.0"
 edition = "2021"
-default-run = "server"
-
-[lib]
-name = "ref_impl_lib"
-path = "src/lib.rs"
-
-[[bin]]
-name = "server"
-path = "src/main.rs"
 
 [dependencies]
 actix-web = {version = "4.13.0", features = ["openssl"]}
