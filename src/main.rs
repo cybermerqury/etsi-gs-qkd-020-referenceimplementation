@@ -2,8 +2,10 @@ use std::process::exit;
 
 use ref_impl_lib::{
     config::{AppState, Config},
+    ext_keys_caller::ext_keys_subsystem,
     server::{build_tls_configuration, run_server},
 };
+use tokio::signal::ctrl_c;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -25,7 +27,19 @@ async fn main() -> std::io::Result<()> {
         app_state.config.ip_addr, app_state.config.port_num
     );
 
-    let server = run_server(app_state, tls_config)?;
+    let server = run_server(app_state.clone(), tls_config)?;
 
-    server.await
+    tokio::select! {
+        _ = server => {
+            println!("Server exited.")
+        },
+        _ = ext_keys_subsystem(app_state.clone()) => {
+            println!("ext_keys caller subsystem exited.");
+        },
+        _ = ctrl_c() => {
+            println!("Signal caught. Terminating.")
+        }
+    }
+
+    Ok(())
 }
