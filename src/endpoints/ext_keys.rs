@@ -33,6 +33,7 @@ async fn ext_keys(
     HttpResponse::Accepted().finish()
 }
 
+/// Validate the `ext_keys` request body. If valid, return `None`, else return `Some`.
 fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Option<ErrorResponse> {
     let mut valid_request = request_body.target_sae_ids.len() == 1;
     valid_request = valid_request && (!request_body.initiator_sae_id.is_empty());
@@ -77,6 +78,7 @@ fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Option<Er
     None
 }
 
+/// Sleep for a given duration, then issue an `ack` callback request.
 async fn call_ack(
     sleep_duration: Duration,
     app_state: web::Data<AppState>,

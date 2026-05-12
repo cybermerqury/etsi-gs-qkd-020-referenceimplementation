@@ -16,6 +16,7 @@ pub enum AckStatus {
     KeyNotPresent,
 }
 
+/// The request body for an `ack` endpoint call.
 #[derive(Deserialize, Serialize, Debug)]
 pub struct AckRequest {
     pub key_ids: Vec<KeyIdElement>,

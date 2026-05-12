@@ -3,6 +3,7 @@ use url::Url;
 
 use crate::types::KeyValueElement;
 
+/// The request body for an `ext_keys` call.
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ExtKeysRequest {
     pub keys: Vec<KeyValueElement>,

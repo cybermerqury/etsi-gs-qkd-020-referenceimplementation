@@ -38,6 +38,7 @@ async fn service_request(request_body: AckRequest) -> Result<(), Box<dyn Error>>
     Ok(())
 }
 
+/// Validate the `ack` request body. If valid, return `None`, else return `Some`.
 fn validate_request(request_body: &AckRequest) -> Option<ErrorResponse> {
     let mut error_details = HashMap::new();
 

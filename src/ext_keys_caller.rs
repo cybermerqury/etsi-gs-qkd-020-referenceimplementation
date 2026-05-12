@@ -6,6 +6,8 @@ use crate::{
     types::{ext_keys::ExtKeysRequest, KeyValueElement},
 };
 
+/// The ext_keys_subsystem sends out `ext_keys` requests at fixed intervals.
+/// This emulates the behaviour of a third-party KMS sending inbound requests of its own.
 pub async fn ext_keys_subsystem(app_state: AppState) {
     let ss_config = app_state.config.send_ext_keys_config;
 
@@ -35,7 +37,7 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
             extension_mandatory: json!({}),
             extension_optional: None,
             initiator_sae_id: app_state.config.intra_network_sae_ids[0].clone(),
-            target_sae_ids: app_state.config.third_party_sae_ids[0..1].to_vec(),
+            target_sae_ids: vec![app_state.config.third_party_sae_ids[0].clone()],
         };
 
         println!(

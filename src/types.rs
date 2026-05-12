@@ -30,6 +30,7 @@ pub struct KeyIdElement {
     pub key_id: Uuid,
 }
 
+/// Represents a standard `ETSI020` response body for HTTP errors.
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ErrorResponse {
     #[serde(rename = "type")]

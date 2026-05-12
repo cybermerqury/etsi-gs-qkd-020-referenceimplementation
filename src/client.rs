@@ -29,6 +29,8 @@ impl Etsi020Client {
         Ok(Self { client })
     }
 
+    /// Send an `ext_keys` request to the supplied URL in **ASYNC MODE**.
+    /// Expects a 202 response code.
     pub async fn ext_keys_async(
         &self,
         url: impl IntoUrl,
@@ -48,6 +50,7 @@ impl Etsi020Client {
             .inspect_err(|e| println!("EXT_KEYS error processing response. Error: {e}"))
     }
 
+    /// Send an `ack` request to the supplied URL.
     pub async fn ack(&self, url: impl IntoUrl, body: AckRequest) -> Result<(), Box<dyn Error>> {
         let ack_url_response = self
             .client
@@ -63,6 +66,11 @@ impl Etsi020Client {
             .inspect_err(|e| println!("ACK error processing response. Error: {e}"))
     }
 
+    /// Process an ETSI020 response, assuming no response body is present.
+    /// Checks if the response status matches an expected status.
+    /// * If it does, return an `Ok(())`.
+    /// * If not, try parse the response body into an ETSI020 error body. If successful, return that.
+    /// * Else, return a general `Error`.
     async fn process_response_no_body(
         response: Response,
         expected_status: StatusCode,
