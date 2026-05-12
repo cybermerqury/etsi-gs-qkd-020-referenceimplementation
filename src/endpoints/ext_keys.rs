@@ -59,7 +59,7 @@ async fn ext_keys(
 
     if !app_state
         .config
-        .intra_network_sae_ids
+        .third_party_sae_ids
         .contains(&request_body.initiator_sae_id)
     {
         return HttpResponse::BadRequest().json(ErrorResponse::new(
@@ -73,11 +73,11 @@ async fn ext_keys(
     let missing_target_sae_ids = request_body
         .target_sae_ids
         .iter()
-        .filter(|sae_id| !app_state.config.third_party_sae_ids.contains(&sae_id))
+        .filter(|sae_id| !app_state.config.intra_network_sae_ids.contains(&sae_id))
         .map(String::as_str)
         .collect::<Vec<_>>();
 
-    if !missing_target_sae_ids.is_empty() {
+    if missing_target_sae_ids.len() > 0 {
         return HttpResponse::BadRequest().json(ErrorResponse::from_status_code(
             StatusCode::BAD_REQUEST,
             "Bad target_sae_ids. This instance is not configured for one or more of the supplied SAE IDs.",

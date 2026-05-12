@@ -1,5 +1,4 @@
 use serde_json::json;
-use url::Url;
 use uuid::Uuid;
 
 use crate::{
@@ -16,7 +15,7 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
     }
 
     let mut interval = tokio::time::interval(ss_config.dispatch_interval);
-    let ext_keys_url = match ss_config.target_url.join("/kmapi/v1/ext_keys/") {
+    let ext_keys_url = match ss_config.target_url.join("/kmapi/v1/ext_keys") {
         Ok(url) => url,
         Err(e) => {
             println!("Failed to construct ext_keys URL. Error: {e}");
@@ -24,31 +23,25 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
         }
     };
 
-    let ack_callback_url =
-        match Url::parse(format!("localhost:{}", app_state.config.port_num).as_str()) {
-            Ok(url) => url,
-            Err(e) => {
-                println!("Failed to initialise ACK callback URL. Error: {e}");
-                return;
-            }
-        };
-
     loop {
         interval.tick().await;
-
-        println!("Sending ext_keys request to {}.", ext_keys_url);
 
         let body = ExtKeysRequest {
             keys: vec![KeyValueElement {
                 key_id: Uuid::now_v7(),
                 value: "wHHVxRwDJs3/bXd38GHP3oe4svTuRpZS0yCC7x4Ly+s=".to_string(),
             }],
-            ack_callback_url: ack_callback_url.clone(),
+            ack_callback_url: ss_config.ack_url.clone(),
             extension_mandatory: json!({}),
             extension_optional: None,
             initiator_sae_id: app_state.config.intra_network_sae_ids[0].clone(),
             target_sae_ids: app_state.config.third_party_sae_ids[0..1].to_vec(),
         };
+
+        println!(
+            "Sending ext_keys request to {}. Body:\n\t{:?}",
+            ext_keys_url, body
+        );
 
         let result = app_state
             .callback_client

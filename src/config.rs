@@ -6,23 +6,34 @@ use url::Url;
 
 use crate::client::Etsi020Client;
 
+// ----------------
+// Base config keys
+// ----------------
+
 const ENV_ROOT_CERT: &str = "ETSI_020_REF_IMPL_ROOT_CERT";
 const ENV_PRIVATE_KEY: &str = "ETSI_020_REF_IMPL_PRIVATE_KEY";
 const ENV_PUBLIC_CERT: &str = "ETSI_020_REF_IMPL_PUBLIC_CERT";
 const ENV_PORT_NUM: &str = "ETSI_020_REF_IMPL_PORT_NUM";
 const ENV_IP_ADDR: &str = "ETSI_020_REF_IMPL_IP_ADDR";
+const ENV_INTRA_NETWORK_SAE_IDS: &str = "ETSI_020_REF_IMPL_INTRA_NETWORK_SAE_IDS";
+const ENV_THIRD_PARTY_SAE_IDS: &str = "ETSI_020_REF_IMPL_THIRD_PARTY_SAE_IDS";
+
+// -----------------------
+// ext_keys caller ss keys
+// -----------------------
+
 const ENV_SEND_OUTBOUND_EXT_KEYS_ENABLE: &str = "ETSI_020_REF_IMPL_SEND_EXT_KEYS_ENABLE";
 const ENV_SEND_OUTBOUND_EXT_KEYS_INTERVAL_SECONDS: &str =
     "ETSI_020_REF_IMPL_SEND_EXT_KEYS_INTERVAL_SECONDS";
 const ENV_SEND_OUTBOUND_EXT_KEYS_BASE_URL: &str = "ETSI_020_REF_IMPL_SEND_EXT_KEYS_BASE_URL";
-const ENV_INTRA_NETWORK_SAE_IDS: &str = "ETSI_020_REF_IMPL_INTRA_NETWORK_SAE_IDS";
-const ENV_THIRD_PARTY_SAE_IDS: &str = "ETSI_020_REF_IMPL_THIRD_PARTY_SAE_IDS";
+const ENV_SEND_OUTBOUND_EXT_KEYS_ACK_URL: &str = "ETSI_020_REF_IMPL_SEND_EXT_KEYS_ACK_CALLBACK_URL";
 
 #[derive(Clone, Debug)]
 pub struct SendExtKeysConfig {
     pub enabled: bool,
     pub dispatch_interval: Duration,
     pub target_url: Url,
+    pub ack_url: Url,
 }
 
 impl SendExtKeysConfig {
@@ -33,6 +44,7 @@ impl SendExtKeysConfig {
                 ENV_SEND_OUTBOUND_EXT_KEYS_INTERVAL_SECONDS,
             )),
             target_url: extract_value(ENV_SEND_OUTBOUND_EXT_KEYS_BASE_URL),
+            ack_url: extract_value(ENV_SEND_OUTBOUND_EXT_KEYS_ACK_URL),
         }
     }
 }
