@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+pub mod ack;
+pub mod ext_keys;
+
+use std::{collections::HashMap, error::Error, fmt::Display};
 
 use base64::Engine;
 use reqwest::StatusCode;
@@ -72,3 +75,15 @@ impl ErrorResponse {
         }
     }
 }
+
+impl Display for ErrorResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ETSI020 Error response: '{}' (code {}): {}",
+            self.type_name, self.status, self.title
+        )
+    }
+}
+
+impl Error for ErrorResponse {}

@@ -2,25 +2,15 @@ use std::time::Duration;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use reqwest::StatusCode;
-use serde::{Deserialize, Serialize};
-use url::Url;
 
 use crate::{
     config::AppState,
-    endpoints::ack::{AckRequest, AckStatus},
-    types::{ErrorResponse, KeyIdElement, KeyValueElement},
+    types::{
+        ack::{AckRequest, AckStatus},
+        ext_keys::ExtKeysRequest,
+        ErrorResponse, KeyIdElement,
+    },
 };
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct ExtKeysRequest {
-    pub keys: Vec<KeyValueElement>,
-    pub initiator_sae_id: String,
-    pub target_sae_ids: Vec<String>,
-    pub ack_callback_url: Url,
-    pub extension_mandatory: serde_json::Value,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub extension_optional: Option<serde_json::Value>,
-}
 
 async fn call_ack(
     sleep_duration: Duration,

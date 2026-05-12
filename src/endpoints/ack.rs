@@ -2,32 +2,8 @@ use std::{collections::HashMap, error::Error};
 
 use actix_web::{post, web, HttpResponse, Responder};
 use reqwest::StatusCode;
-use serde::{Deserialize, Serialize};
 
-use crate::types::{ErrorResponse, KeyIdElement};
-
-#[derive(Deserialize, Serialize, Debug)]
-pub enum AckStatus {
-    #[serde(rename = "relayed")]
-    Relayed,
-    #[serde(rename = "failed")]
-    Failed,
-    #[serde(rename = "voided")]
-    Voided,
-    #[serde(rename = "failed to void")]
-    FailedToVoid,
-    #[serde(rename = "key not present")]
-    KeyNotPresent,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct AckRequest {
-    pub key_ids: Vec<KeyIdElement>,
-    pub ack_status: AckStatus,
-    pub initiator_sae_id: String,
-    pub target_sae_id: String,
-    pub message: String,
-}
+use crate::types::{ack::AckRequest, ErrorResponse};
 
 #[post("/kmapi/v1/ext_keys/ack")]
 pub async fn ack(request_body: web::Json<AckRequest>) -> impl Responder {

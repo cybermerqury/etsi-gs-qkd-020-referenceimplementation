@@ -1,8 +1,8 @@
 use std::{error::Error, fs::read, path::Path, time::Duration};
 
-use reqwest::{Certificate, Client, Identity, IntoUrl, StatusCode};
+use reqwest::{Certificate, Client, Identity, IntoUrl, Response, StatusCode};
 
-use crate::{endpoints::ack::AckRequest, types::ErrorResponse};
+use crate::types::{ack::AckRequest, ext_keys::ExtKeysRequest, ErrorResponse};
 
 #[derive(Clone)]
 pub struct Etsi020Client {
@@ -29,6 +29,25 @@ impl Etsi020Client {
         Ok(Self { client })
     }
 
+    pub async fn ext_keys_async(
+        &self,
+        url: impl IntoUrl,
+        body: ExtKeysRequest,
+    ) -> Result<(), Box<dyn Error>> {
+        let ext_keys_url_response = self
+            .client
+            .post(url)
+            .json(&body)
+            .send()
+            .await
+            .inspect_err(|e| println!("Failed to send 'ext_keys' request. Error: {:?}", e))?;
+
+        Self::process_response_no_body(ext_keys_url_response, StatusCode::ACCEPTED)
+            .await
+            .inspect(|_| println!("EXT_KEYS url call OK."))
+            .inspect_err(|e| println!("EXT_KEYS error processing response. Error: {e}"))
+    }
+
     pub async fn ack(&self, url: impl IntoUrl, body: AckRequest) -> Result<(), Box<dyn Error>> {
         let ack_url_response = self
             .client
@@ -38,20 +57,28 @@ impl Etsi020Client {
             .await
             .inspect_err(|e| println!("Failed to send 'ack' request. Error: {:?}", e))?;
 
-        let status = ack_url_response.status();
-        if status != StatusCode::OK {
-            println!("ACK url call ERR. Status: {:?}", ack_url_response.status());
+        Self::process_response_no_body(ack_url_response, StatusCode::OK)
+            .await
+            .inspect(|_| println!("ACK url call OK."))
+            .inspect_err(|e| println!("ACK error processing response. Error: {e}"))
+    }
 
-            let err_body = ack_url_response
-                .json::<ErrorResponse>()
-                .await
-                .inspect_err(|e| println!("Could not parse ACK response. Error: {}, {:?}", e, e))?;
+    async fn process_response_no_body(
+        response: Response,
+        expected_status: StatusCode,
+    ) -> Result<(), Box<dyn Error>> {
+        let status = response.status();
 
-            println!("ACK response body:\n\t{:#?}", err_body);
+        if status != expected_status {
+            println!("Response status error. Expected {expected_status}, received {status}");
+
+            let err_body = response.json::<ErrorResponse>().await.inspect_err(|e| {
+                println!("Could not parse response JSON body. Error: {} ({:?})", e, e)
+            })?;
+
+            Err(Box::new(err_body))
         } else {
-            println!("ACK url call OK.");
+            Ok(())
         }
-
-        Ok(())
     }
 }
