@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use serde_json::json;
 use uuid::Uuid;
 
@@ -13,6 +15,7 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
 
     if !ss_config.enabled {
         println!("Send ext_keys subsystem is disabled by config.");
+        tokio::time::sleep(Duration::MAX).await;
         return;
     }
 

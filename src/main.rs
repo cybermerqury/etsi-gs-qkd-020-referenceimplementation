@@ -48,5 +48,7 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
+    println!("Shutting down.");
+
     Ok(())
 }
