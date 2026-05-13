@@ -67,7 +67,7 @@ impl Config {
             root_cert: extract_string_value(ENV_ROOT_CERT),
             private_key: extract_string_value(ENV_PRIVATE_KEY),
             public_cert: extract_string_value(ENV_PUBLIC_CERT),
-            port_num: extract_u16_value(ENV_PORT_NUM),
+            port_num: extract_value(ENV_PORT_NUM),
             ip_addr: extract_string_value(ENV_IP_ADDR),
             send_ext_keys_config: SendExtKeysConfig::new(),
             intra_network_sae_ids: extract_comma_sep_vec(ENV_INTRA_NETWORK_SAE_IDS),
@@ -91,18 +91,6 @@ impl AppState {
             config,
             callback_client: client,
         })
-    }
-}
-
-fn extract_u16_value(var_name: &str) -> u16 {
-    let extracted_value = extract_string_value(var_name);
-
-    match extracted_value.parse() {
-        Ok(val) => val,
-        Err(e) => {
-            error!("Error when converting '{}' to a u16: {:?}", var_name, e);
-            panic!("'{}' incorrect value set", var_name)
-        }
     }
 }
 

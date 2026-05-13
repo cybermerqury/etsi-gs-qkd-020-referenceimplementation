@@ -36,6 +36,8 @@ async fn main() -> std::io::Result<()> {
 
     let server = run_server(app_state.clone(), tls_config)?;
 
+    // Wait until either a task exits prematurely, or a SIGTERM is caught.
+    // In the meantime, let the server service requests.
     tokio::select! {
         _ = server => {
             println!("Server exited.")

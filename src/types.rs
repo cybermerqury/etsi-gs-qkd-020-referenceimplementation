@@ -16,12 +16,9 @@ pub struct KeyValueElement {
 
 impl KeyValueElement {
     pub fn is_key_value_valid(&self) -> bool {
-        match base64::engine::general_purpose::STANDARD.decode(&self.value) {
-            Ok(decoded_key) => {
-                decoded_key.len() == 32 // Keys must be 256bits long
-            }
-            Err(_) => false,
-        }
+        base64::engine::general_purpose::STANDARD
+            .decode(&self.value)
+            .is_ok_and(|v| v.len() == 32)
     }
 }
 

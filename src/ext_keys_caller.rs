@@ -13,6 +13,7 @@ use crate::{
 pub async fn ext_keys_subsystem(app_state: AppState) {
     let ss_config = app_state.config.send_ext_keys_config;
 
+    // If disabled, sleep indefinitely.
     if !ss_config.enabled {
         println!("Send ext_keys subsystem is disabled by config.");
         tokio::time::sleep(Duration::MAX).await;
