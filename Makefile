@@ -79,7 +79,7 @@ build_release:
 	cargo build --release --workspace
 
 build_image: build_release
-	docker build -t merqury/etsi_020_ref_impl:1.0.0 -f Dockerfile .
+	docker build -t merqury/etsi_020_ref_impl:0.1.0 -f Dockerfile .
 
 build_clean:
 	cargo clean
