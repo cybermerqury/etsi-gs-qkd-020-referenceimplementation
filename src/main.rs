@@ -1,88 +1,56 @@
-mod config;
+pub mod client;
+pub mod config;
+pub mod endpoints;
+pub mod ext_keys_caller;
+pub mod server;
+pub mod types;
 
-use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
-use base64::Engine;
-use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslVerifyMode};
-use serde::{Deserialize, Serialize};
+use std::process::exit;
+use tokio::signal::ctrl_c;
 
-use crate::config::Config;
-
-#[derive(Debug, Deserialize)]
-struct KeyElement {
-    key_id: String,
-    value: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct RequestBody {
-    keys: Vec<KeyElement>,
-    initiator_sae_id: String,
-    target_sae_ids: Vec<String>,
-}
-
-#[derive(Serialize)]
-struct ErrorResponse {
-    message: String,
-    details: Vec<String>,
-}
-
-fn is_key_value_valid(key_value: &str) -> bool {
-    match base64::engine::general_purpose::STANDARD.decode(key_value) {
-        Ok(decoded_key) => {
-            decoded_key.len() == 32 // Keys must be 256bits long
-        }
-        Err(_) => false,
-    }
-}
-
-fn build_tls_configuration(config: &Config) -> SslAcceptorBuilder {
-    let mut builder = SslAcceptor::mozilla_modern_v5(SslMethod::tls()).unwrap();
-
-    builder.set_ca_file(&config.root_cert).unwrap();
-    builder
-        .set_private_key_file(&config.private_key, SslFiletype::PEM)
-        .unwrap();
-    builder
-        .set_certificate_chain_file(&config.public_cert)
-        .unwrap();
-    builder.set_verify(SslVerifyMode::PEER | SslVerifyMode::FAIL_IF_NO_PEER_CERT);
-
-    builder
-}
-
-#[post("/kmapi/v1/ext_keys")]
-async fn ext_keys(request_body: web::Json<RequestBody>) -> impl Responder {
-    println!("Request received: {request_body:?}.");
-
-    let mut valid_request = request_body.target_sae_ids.len() == 1;
-    valid_request = valid_request && (!request_body.initiator_sae_id.is_empty());
-    valid_request = valid_request
-        && ((request_body.keys.len() == 1)
-            && is_key_value_valid(request_body.keys[0].value.as_str()));
-
-    if valid_request {
-        println!("Valid response");
-        HttpResponse::Ok().finish()
-    } else {
-        println!("Invalid response");
-        let response_body = ErrorResponse {
-            message: String::from("Error message"),
-            details: vec![String::from("Details 1"), String::from("Details 2")],
-        };
-
-        HttpResponse::InternalServerError().json(response_body)
-    }
-}
+use crate::{
+    config::{AppState, Config},
+    ext_keys_caller::ext_keys_subsystem,
+    server::{build_tls_configuration, run_server},
+};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let config = Config::new();
 
-    HttpServer::new(|| App::new().service(ext_keys))
-        .bind_openssl(
-            (config.ip_addr.as_str(), config.port_num),
-            build_tls_configuration(&config),
-        )?
-        .run()
-        .await
+    let tls_config =
+        build_tls_configuration(&config.root_cert, &config.public_cert, &config.private_key);
+
+    let app_state = match AppState::new(config) {
+        Ok(state) => state,
+        Err(e) => {
+            println!("Failed to initialise app state. Exiting. Error: {e}");
+            exit(1);
+        }
+    };
+
+    println!(
+        "Listening on {}:{}",
+        app_state.config.ip_addr, app_state.config.port_num
+    );
+
+    let server = run_server(app_state.clone(), tls_config)?;
+
+    // Wait until either a task exits prematurely, or a SIGTERM is caught.
+    // In the meantime, let the server service requests.
+    tokio::select! {
+        _ = server => {
+            println!("Server exited.")
+        },
+        _ = ext_keys_subsystem(app_state.clone()) => {
+            println!("ext_keys caller subsystem exited.");
+        },
+        _ = ctrl_c() => {
+            println!("Signal caught. Terminating.")
+        }
+    }
+
+    println!("Shutting down.");
+
+    Ok(())
 }
