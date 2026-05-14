@@ -20,7 +20,7 @@ setup:
 run_server: run_server_a
 
 run_server_a: build
-	echo Starting Alice server.
+	echo Starting network A server.
 	ETSI_020_REF_IMPL_ROOT_CERT=$(A_ETSI_020_REF_IMPL_ROOT_CERT) \
 	ETSI_020_REF_IMPL_PRIVATE_KEY=$(A_ETSI_020_REF_IMPL_PRIVATE_KEY) \
 	ETSI_020_REF_IMPL_PUBLIC_CERT=$(A_ETSI_020_REF_IMPL_PUBLIC_CERT) \
@@ -36,7 +36,7 @@ run_server_a: build
 	    cargo run
 
 run_server_b: build
-	echo Starting Bob server.
+	echo Starting network B server.
 	ETSI_020_REF_IMPL_ROOT_CERT=$(B_ETSI_020_REF_IMPL_ROOT_CERT) \
 	ETSI_020_REF_IMPL_PRIVATE_KEY=$(B_ETSI_020_REF_IMPL_PRIVATE_KEY) \
 	ETSI_020_REF_IMPL_PUBLIC_CERT=$(B_ETSI_020_REF_IMPL_PUBLIC_CERT) \
