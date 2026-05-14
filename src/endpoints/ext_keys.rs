@@ -12,8 +12,6 @@ use crate::{
     },
 };
 
-const ACK_CALLBACK_DELAY: Duration = Duration::from_secs(3);
-
 #[post("/kmapi/v1/ext_keys")]
 async fn ext_keys(
     request_body: web::Json<ExtKeysRequest>,
@@ -28,7 +26,11 @@ async fn ext_keys(
 
     println!("Valid response, spawning worker.");
 
-    actix_web::rt::spawn(call_ack(ACK_CALLBACK_DELAY, app_state, request_body.0));
+    actix_web::rt::spawn(call_ack(
+        app_state.config.ack_callback_delay,
+        app_state,
+        request_body.0,
+    ));
 
     HttpResponse::Accepted().finish()
 }

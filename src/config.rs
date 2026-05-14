@@ -15,6 +15,7 @@ const ENV_PRIVATE_KEY: &str = "ETSI_020_REF_IMPL_PRIVATE_KEY";
 const ENV_PUBLIC_CERT: &str = "ETSI_020_REF_IMPL_PUBLIC_CERT";
 const ENV_PORT_NUM: &str = "ETSI_020_REF_IMPL_PORT_NUM";
 const ENV_IP_ADDR: &str = "ETSI_020_REF_IMPL_IP_ADDR";
+const ENV_ACK_CALLBACK_DELAY: &str = "ETSI_020_REF_IMPL_ACK_CALLBACK_DELAY";
 const ENV_INTRA_NETWORK_SAE_IDS: &str = "ETSI_020_REF_IMPL_INTRA_NETWORK_SAE_IDS";
 const ENV_THIRD_PARTY_SAE_IDS: &str = "ETSI_020_REF_IMPL_THIRD_PARTY_SAE_IDS";
 
@@ -56,6 +57,7 @@ pub struct Config {
     pub public_cert: String,
     pub port_num: u16,
     pub ip_addr: String,
+    pub ack_callback_delay: Duration,
     pub send_ext_keys_config: SendExtKeysConfig,
     pub intra_network_sae_ids: Vec<String>,
     pub third_party_sae_ids: Vec<String>,
@@ -69,6 +71,7 @@ impl Config {
             public_cert: extract_string_value(ENV_PUBLIC_CERT),
             port_num: extract_value(ENV_PORT_NUM),
             ip_addr: extract_string_value(ENV_IP_ADDR),
+            ack_callback_delay: Duration::from_secs(extract_value(ENV_ACK_CALLBACK_DELAY)),
             send_ext_keys_config: SendExtKeysConfig::new(),
             intra_network_sae_ids: extract_comma_sep_vec(ENV_INTRA_NETWORK_SAE_IDS),
             third_party_sae_ids: extract_comma_sep_vec(ENV_THIRD_PARTY_SAE_IDS),
