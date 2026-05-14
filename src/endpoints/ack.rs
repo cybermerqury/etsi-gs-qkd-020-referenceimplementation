@@ -7,7 +7,7 @@ use crate::types::{ack::AckRequest, ErrorResponse};
 
 #[post("/kmapi/v1/ext_keys/ack")]
 pub async fn ack(request_body: web::Json<AckRequest>) -> impl Responder {
-    if let Some(err) = validate_request(&request_body) {
+    if let Err(err) = validate_request(&request_body) {
         return HttpResponse::BadRequest().json(err);
     }
 
@@ -39,7 +39,7 @@ async fn service_request(request_body: AckRequest) -> Result<(), Box<dyn Error>>
 }
 
 /// Validate the `ack` request body. If valid, return `None`, else return `Some`.
-fn validate_request(request_body: &AckRequest) -> Option<ErrorResponse> {
+fn validate_request(request_body: &AckRequest) -> Result<(), ErrorResponse> {
     let mut error_details = HashMap::new();
 
     if request_body.key_ids.is_empty() {
@@ -61,9 +61,9 @@ fn validate_request(request_body: &AckRequest) -> Option<ErrorResponse> {
     }
 
     if error_details.is_empty() {
-        None
+        Ok(())
     } else {
-        Some(ErrorResponse::from_status_code(
+        Err(ErrorResponse::from_status_code(
             StatusCode::BAD_REQUEST,
             "Invalid request",
             error_details,

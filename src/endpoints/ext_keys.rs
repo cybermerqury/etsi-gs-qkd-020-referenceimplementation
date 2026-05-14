@@ -21,7 +21,7 @@ async fn ext_keys(
 ) -> impl Responder {
     println!("Request received: {request_body:?}.");
 
-    if let Some(validation_err) = validate_request(&app_state.config, &request_body) {
+    if let Err(validation_err) = validate_request(&app_state.config, &request_body) {
         println!("EXT_KEYS: Validation error in request.");
         return HttpResponse::BadRequest().json(validation_err);
     }
@@ -34,14 +34,14 @@ async fn ext_keys(
 }
 
 /// Validate the `ext_keys` request body. If valid, return `None`, else return `Some`.
-fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Option<ErrorResponse> {
+fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Result<(), ErrorResponse> {
     let mut valid_request = request_body.target_sae_ids.len() == 1;
     valid_request = valid_request && (!request_body.initiator_sae_id.is_empty());
     valid_request = valid_request
         && ((request_body.keys.len() == 1) && request_body.keys[0].is_key_value_valid());
 
     if !valid_request {
-        return Some(ErrorResponse::from_status_code(
+        return Err(ErrorResponse::from_status_code(
             StatusCode::BAD_REQUEST,
             "Error message",
             [("Details 1", "Details 1 message")],
@@ -52,7 +52,7 @@ fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Option<Er
         .third_party_sae_ids
         .contains(&request_body.initiator_sae_id)
     {
-        return Some(ErrorResponse::new(
+        return Err(ErrorResponse::new(
             "Invalid parameter",
             400,
             "Bad initiator_sae_id. Passed SAE ID is not recognized.",
@@ -68,14 +68,14 @@ fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Option<Er
         .collect::<Vec<_>>();
 
     if missing_target_sae_ids.len() > 0 {
-        return Some(ErrorResponse::from_status_code(
+        return Err(ErrorResponse::from_status_code(
             StatusCode::BAD_REQUEST,
             "Bad target_sae_ids. This instance is not configured for one or more of the supplied SAE IDs.",
             [("target_sae_ids", missing_target_sae_ids.join(","))]
         ));
     }
 
-    None
+    Ok(())
 }
 
 /// Sleep for a given duration, then issue an `ack` callback request.
