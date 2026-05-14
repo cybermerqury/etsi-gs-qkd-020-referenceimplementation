@@ -9,7 +9,7 @@ use crate::{
 };
 
 /// The ext_keys_subsystem sends out `ext_keys` requests at fixed intervals.
-/// This emulates the behaviour of a third-party KMS sending inbound requests of its own.
+/// This emulates the behavior of a third-party KMS sending inbound requests of its own.
 pub async fn ext_keys_subsystem(app_state: AppState) {
     let ss_config = app_state.config.send_ext_keys_config;
 

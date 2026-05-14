@@ -8,7 +8,7 @@ use crate::{
     endpoints::{ack::ack, ext_keys::ext_keys},
 };
 
-/// Initialise an mTLS configuration for the actix-web server.
+/// Initialize an mTLS configuration for the actix-web server.
 pub fn build_tls_configuration(
     ca_cert: impl AsRef<Path>,
     cert: impl AsRef<Path>,
@@ -24,7 +24,7 @@ pub fn build_tls_configuration(
     builder
 }
 
-/// Initialise the server and begin serving requests.
+/// Initialize the server and begin serving requests.
 /// Returns a handle which can be used to remotely abort the server.
 pub fn run_server(app_state: AppState, tls_config: SslAcceptorBuilder) -> std::io::Result<Server> {
     let bind_addr = (app_state.config.ip_addr.clone(), app_state.config.port_num);

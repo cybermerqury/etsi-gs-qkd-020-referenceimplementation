@@ -38,27 +38,27 @@ pub struct ErrorResponse {
 }
 
 impl ErrorResponse {
-    pub fn from_status_code<DetialsIter, K, V>(
+    pub fn from_status_code<DetailsIter, K, V>(
         status: StatusCode,
         title: impl ToString,
-        details: DetialsIter,
+        details: DetailsIter,
     ) -> Self
     where
-        DetialsIter: IntoIterator<Item = (K, V)>,
+        DetailsIter: IntoIterator<Item = (K, V)>,
         K: ToString,
         V: ToString,
     {
         Self::new(status, status.as_u16().into(), title, details)
     }
 
-    pub fn new<DetialsIter, K, V>(
+    pub fn new<DetailsIter, K, V>(
         type_name: impl ToString,
         status: u32,
         title: impl ToString,
-        details: DetialsIter,
+        details: DetailsIter,
     ) -> Self
     where
-        DetialsIter: IntoIterator<Item = (K, V)>,
+        DetailsIter: IntoIterator<Item = (K, V)>,
         K: ToString,
         V: ToString,
     {

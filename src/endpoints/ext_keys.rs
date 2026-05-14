@@ -57,7 +57,7 @@ fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Result<()
         return Err(ErrorResponse::new(
             "Invalid parameter",
             400,
-            "Bad initiator_sae_id. Passed SAE ID is not recognized.",
+            "Invalid initiator_sae_id. Passed SAE ID is not recognized.",
             [("initiator_sae_id", &request_body.initiator_sae_id)],
         ));
     }
@@ -72,7 +72,7 @@ fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Result<()
     if missing_target_sae_ids.len() > 0 {
         return Err(ErrorResponse::from_status_code(
             StatusCode::BAD_REQUEST,
-            "Bad target_sae_ids. This instance is not configured for one or more of the supplied SAE IDs.",
+            "Invalid target_sae_ids. This instance is not configured for one or more of the supplied SAE IDs.",
             [("target_sae_ids", missing_target_sae_ids.join(","))]
         ));
     }
