@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use actix_web::{dev::Server, web, App, HttpServer};
+use actix_web::{dev::Server, middleware::Logger, web, App, HttpServer};
 use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslVerifyMode};
 
 use crate::{
@@ -34,6 +34,7 @@ pub fn run_server(app_state: AppState, tls_config: SslAcceptorBuilder) -> std::i
             .app_data(web::Data::new(app_state.clone()))
             .service(ext_keys)
             .service(ack)
+            .wrap(Logger::default())
     })
     .bind_openssl(bind_addr, tls_config)?
     .run();
