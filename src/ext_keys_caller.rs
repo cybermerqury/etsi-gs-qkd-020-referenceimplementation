@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use serde_json::json;
 use tracing::info;
 use uuid::Uuid;
 
@@ -39,7 +38,7 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
                 value: "wHHVxRwDJs3/bXd38GHP3oe4svTuRpZS0yCC7x4Ly+s=".to_string(),
             }],
             ack_callback_url: ss_config.ack_url.clone(),
-            extension_mandatory: json!({}),
+            extension_mandatory: None,
             extension_optional: None,
             initiator_sae_id: app_state.config.intra_network_sae_ids[0].clone(),
             target_sae_ids: vec![app_state.config.third_party_sae_ids[0].clone()],

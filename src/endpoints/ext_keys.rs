@@ -7,7 +7,7 @@ use tracing::info;
 use crate::{
     config::{AppState, Config},
     types::{
-        ack::{AckRequest, AckStatus},
+        ack::{AckContainer, AckRequest, AckStatus},
         ext_keys::ExtKeysRequest,
         ErrorResponse, KeyIdElement,
     },
@@ -91,19 +91,26 @@ async fn call_ack(
 
     info!("Calling ACK url {}", request.ack_callback_url);
 
-    let key_ids = request
+    let key_ids: Vec<_> = request
         .keys
         .into_iter()
         .map(|kv| KeyIdElement { key_id: kv.key_id })
         .collect();
+    let initiator = request.initiator_sae_id.clone();
 
-    let ack_body = AckRequest {
-        ack_status: AckStatus::Relayed,
-        initiator_sae_id: request.initiator_sae_id,
-        target_sae_id: request.target_sae_ids[0].clone(),
-        message: "TEST".to_string(),
-        key_ids: key_ids,
-    };
+    let ack_body = AckRequest(
+        request
+            .target_sae_ids
+            .iter()
+            .map(move |target| AckContainer {
+                ack_status: AckStatus::Relayed,
+                initiator_sae_id: initiator.clone(),
+                target_sae_id: target.clone(),
+                message: "TEST".to_string(),
+                key_ids: key_ids.clone(),
+            })
+            .collect(),
+    );
 
     match app_state
         .callback_client

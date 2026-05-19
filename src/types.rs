@@ -22,7 +22,7 @@ impl KeyValueElement {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct KeyIdElement {
     pub key_id: Uuid,
 }

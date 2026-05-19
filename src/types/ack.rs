@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use serde::{Deserialize, Serialize};
 
 use super::KeyIdElement;
@@ -16,12 +18,23 @@ pub enum AckStatus {
     KeyNotPresent,
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct AckRequest(pub Vec<AckContainer>);
+
 /// The request body for an `ack` endpoint call.
 #[derive(Deserialize, Serialize, Debug)]
-pub struct AckRequest {
+pub struct AckContainer {
     pub key_ids: Vec<KeyIdElement>,
     pub ack_status: AckStatus,
     pub initiator_sae_id: String,
     pub target_sae_id: String,
     pub message: String,
+}
+
+impl Deref for AckRequest {
+    type Target = Vec<AckContainer>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
