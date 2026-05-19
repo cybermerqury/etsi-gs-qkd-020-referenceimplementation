@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use serde_json::json;
+use tracing::info;
 use uuid::Uuid;
 
 use crate::{
@@ -15,7 +16,7 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
 
     // If disabled, sleep indefinitely.
     if !ss_config.enabled {
-        println!("Send ext_keys subsystem is disabled by config.");
+        info!("Send ext_keys subsystem is disabled by config.");
         tokio::time::sleep(Duration::MAX).await;
         return;
     }
@@ -24,7 +25,7 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
     let ext_keys_url = match ss_config.target_url.join("/kmapi/v1/ext_keys") {
         Ok(url) => url,
         Err(e) => {
-            println!("Failed to construct ext_keys URL. Error: {e}");
+            info!("Failed to construct ext_keys URL. Error: {e}");
             return;
         }
     };
@@ -44,7 +45,7 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
             target_sae_ids: vec![app_state.config.third_party_sae_ids[0].clone()],
         };
 
-        println!(
+        info!(
             "Sending ext_keys request to {}. Body:\n\t{:?}",
             ext_keys_url, body
         );
@@ -55,8 +56,8 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
             .await;
 
         match result {
-            Ok(()) => println!("EXT_KEYS response: ACCEPTED."),
-            Err(e) => println!("Failed to call EXT_KEYS. Error: {e}"),
+            Ok(()) => info!("EXT_KEYS response: ACCEPTED."),
+            Err(e) => info!("Failed to call EXT_KEYS. Error: {e}"),
         }
     }
 }

@@ -7,6 +7,7 @@ pub mod types;
 
 use std::process::exit;
 use tokio::signal::ctrl_c;
+use tracing::{info, Level};
 
 use crate::{
     config::{AppState, Config},
@@ -18,18 +19,22 @@ use crate::{
 async fn main() -> std::io::Result<()> {
     let config = Config::new();
 
+    tracing_subscriber::fmt()
+        .with_max_level(Level::TRACE)
+        .init();
+
     let tls_config =
         build_tls_configuration(&config.root_cert, &config.public_cert, &config.private_key);
 
     let app_state = match AppState::new(config) {
         Ok(state) => state,
         Err(e) => {
-            println!("Failed to initialise app state. Exiting. Error: {e}");
+            info!("Failed to initialise app state. Exiting. Error: {e}");
             exit(1);
         }
     };
 
-    println!(
+    info!(
         "Listening on {}:{}",
         app_state.config.ip_addr, app_state.config.port_num
     );
@@ -40,17 +45,17 @@ async fn main() -> std::io::Result<()> {
     // In the meantime, let the server service requests.
     tokio::select! {
         _ = server => {
-            println!("Server exited.")
+            info!("Server exited.")
         },
         _ = ext_keys_subsystem(app_state.clone()) => {
-            println!("ext_keys caller subsystem exited.");
+            info!("ext_keys caller subsystem exited.");
         },
         _ = ctrl_c() => {
-            println!("Signal caught. Terminating.")
+            info!("Signal caught. Terminating.")
         }
     }
 
-    println!("Shutting down.");
+    info!("Shutting down.");
 
     Ok(())
 }

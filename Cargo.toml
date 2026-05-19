@@ -14,3 +14,4 @@ uuid = { version = "1.23.1", features = ["serde", "v7"] }
 url = { version = "2.5.8", features = ["serde"] }
 tokio = { version = "1.52.2", features = ["full", "time"] }
 reqwest = { version = "0.13.3", features = ["json"] }
+tracing-subscriber = "0.3.23"

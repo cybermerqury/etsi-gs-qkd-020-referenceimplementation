@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use reqwest::StatusCode;
+use tracing::info;
 
 use crate::{
     config::{AppState, Config},
@@ -17,14 +18,14 @@ async fn ext_keys(
     request_body: web::Json<ExtKeysRequest>,
     app_state: web::Data<AppState>,
 ) -> impl Responder {
-    println!("Request received: {request_body:?}.");
+    info!("Request received: {request_body:?}.");
 
     if let Err(validation_err) = validate_request(&app_state.config, &request_body) {
-        println!("EXT_KEYS: Validation error in request.");
+        info!("EXT_KEYS: Validation error in request.");
         return HttpResponse::BadRequest().json(validation_err);
     }
 
-    println!("Valid response, spawning worker.");
+    info!("Valid response, spawning worker.");
 
     actix_web::rt::spawn(call_ack(
         app_state.config.ack_callback_delay,
@@ -88,7 +89,7 @@ async fn call_ack(
 ) {
     tokio::time::sleep(sleep_duration).await;
 
-    println!("Calling ACK url {}", request.ack_callback_url);
+    info!("Calling ACK url {}", request.ack_callback_url);
 
     let key_ids = request
         .keys
@@ -109,7 +110,7 @@ async fn call_ack(
         .ack(request.ack_callback_url, ack_body)
         .await
     {
-        Ok(()) => println!("ext_keys servicing concluded."),
-        Err(e) => println!("Error calling 'ack' for 'ext_keys'. Error: {e}"),
+        Ok(()) => info!("ext_keys servicing concluded."),
+        Err(e) => info!("Error calling 'ack' for 'ext_keys'. Error: {e}"),
     }
 }
