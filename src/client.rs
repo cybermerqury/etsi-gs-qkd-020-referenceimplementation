@@ -1,8 +1,11 @@
-use std::{error::Error, fs::read, path::Path, time::Duration};
+use std::{error::Error, fs::read, time::Duration};
 
 use reqwest::{Certificate, Client, Identity, IntoUrl, Response, StatusCode};
 
-use crate::types::{ack::AckRequest, ext_keys::ExtKeysRequest, ErrorResponse};
+use crate::{
+    config::Config,
+    types::{ack::AckRequest, ext_keys::ExtKeysRequest, ErrorResponse},
+};
 
 #[derive(Clone)]
 pub struct Etsi020Client {
@@ -10,14 +13,11 @@ pub struct Etsi020Client {
 }
 
 impl Etsi020Client {
-    pub fn new(
-        root_path: impl AsRef<Path>,
-        public_cert_path: impl AsRef<Path>,
-        private_key_path: impl AsRef<Path>,
-    ) -> Result<Self, Box<dyn Error>> {
-        let root_cert = Certificate::from_pem(&read(&root_path)?)?;
-        let client_cert = read(&public_cert_path)?;
-        let client_key = read(&private_key_path)?;
+    pub fn new(config: &Config) -> Result<Self, Box<dyn Error>> {
+        let root_cert = Certificate::from_pem(&read(&config.client_root_cert)?)?;
+        let client_cert = read(&config.client_public_cert)?;
+        let client_key = read(&config.client_private_key)?;
+
         let identity = Identity::from_pem(&[client_cert, client_key].concat())?;
 
         let client = reqwest::Client::builder()

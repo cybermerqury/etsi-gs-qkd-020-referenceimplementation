@@ -13,6 +13,9 @@ use crate::client::Etsi020Client;
 const ENV_ROOT_CERT: &str = "ETSI_020_REF_IMPL_ROOT_CERT";
 const ENV_PRIVATE_KEY: &str = "ETSI_020_REF_IMPL_PRIVATE_KEY";
 const ENV_PUBLIC_CERT: &str = "ETSI_020_REF_IMPL_PUBLIC_CERT";
+const ENV_CLIENT_ROOT_CERT: &str = "ETSI_020_REF_IMPL_CLIENT_ROOT_CERT";
+const ENV_CLIENT_PRIVATE_KEY: &str = "ETSI_020_REF_IMPL_CLIENT_PRIVATE_KEY";
+const ENV_CLIENT_PUBLIC_CERT: &str = "ETSI_020_REF_IMPL_CLIENT_PUBLIC_CERT";
 const ENV_PORT_NUM: &str = "ETSI_020_REF_IMPL_PORT_NUM";
 const ENV_IP_ADDR: &str = "ETSI_020_REF_IMPL_IP_ADDR";
 const ENV_ACK_CALLBACK_DELAY: &str = "ETSI_020_REF_IMPL_ACK_CALLBACK_DELAY";
@@ -55,6 +58,9 @@ pub struct Config {
     pub root_cert: String,
     pub private_key: String,
     pub public_cert: String,
+    pub client_root_cert: String,
+    pub client_public_cert: String,
+    pub client_private_key: String,
     pub port_num: u16,
     pub ip_addr: String,
     pub ack_callback_delay: Duration,
@@ -69,6 +75,9 @@ impl Config {
             root_cert: extract_string_value(ENV_ROOT_CERT),
             private_key: extract_string_value(ENV_PRIVATE_KEY),
             public_cert: extract_string_value(ENV_PUBLIC_CERT),
+            client_root_cert: extract_string_value(ENV_CLIENT_ROOT_CERT),
+            client_public_cert: extract_string_value(ENV_CLIENT_PRIVATE_KEY),
+            client_private_key: extract_string_value(ENV_CLIENT_PUBLIC_CERT),
             port_num: extract_value(ENV_PORT_NUM),
             ip_addr: extract_string_value(ENV_IP_ADDR),
             ack_callback_delay: Duration::from_secs(extract_value(ENV_ACK_CALLBACK_DELAY)),
@@ -87,8 +96,7 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(config: Config) -> Result<Self, Box<dyn Error>> {
-        let client =
-            Etsi020Client::new(&config.root_cert, &config.public_cert, &config.private_key)?;
+        let client = Etsi020Client::new(&config)?;
 
         Ok(Self {
             config,
