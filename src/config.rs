@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: © 2023 Merqury Cybersecurity Ltd <info@merqury.eu>
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::{any::type_name, env, error::Error, fmt::Display, str::FromStr, time::Duration};
-use tracing::error;
+use tracing::{error, Level};
 use url::Url;
 
 use crate::client::Etsi020Client;
@@ -16,6 +16,7 @@ const ENV_PUBLIC_CERT: &str = "ETSI_020_REF_IMPL_PUBLIC_CERT";
 const ENV_CLIENT_ROOT_CERT: &str = "ETSI_020_REF_IMPL_CLIENT_ROOT_CERT";
 const ENV_CLIENT_PRIVATE_KEY: &str = "ETSI_020_REF_IMPL_CLIENT_PRIVATE_KEY";
 const ENV_CLIENT_PUBLIC_CERT: &str = "ETSI_020_REF_IMPL_CLIENT_PUBLIC_CERT";
+const ENV_LOG_LEVEL: &str = "ETSI_020_REF_IMPL_LOG_LEVEL";
 const ENV_PORT_NUM: &str = "ETSI_020_REF_IMPL_PORT_NUM";
 const ENV_IP_ADDR: &str = "ETSI_020_REF_IMPL_IP_ADDR";
 const ENV_ACK_CALLBACK_DELAY: &str = "ETSI_020_REF_IMPL_ACK_CALLBACK_DELAY";
@@ -61,6 +62,7 @@ pub struct Config {
     pub client_root_cert: String,
     pub client_public_cert: String,
     pub client_private_key: String,
+    pub log_level: Level,
     pub port_num: u16,
     pub ip_addr: String,
     pub ack_callback_delay: Duration,
@@ -78,6 +80,7 @@ impl Config {
             client_root_cert: extract_string_value(ENV_CLIENT_ROOT_CERT),
             client_public_cert: extract_string_value(ENV_CLIENT_PRIVATE_KEY),
             client_private_key: extract_string_value(ENV_CLIENT_PUBLIC_CERT),
+            log_level: extract_value(ENV_LOG_LEVEL),
             port_num: extract_value(ENV_PORT_NUM),
             ip_addr: extract_string_value(ENV_IP_ADDR),
             ack_callback_delay: Duration::from_secs(extract_value(ENV_ACK_CALLBACK_DELAY)),

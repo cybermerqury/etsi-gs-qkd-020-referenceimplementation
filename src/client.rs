@@ -1,7 +1,7 @@
 use std::{error::Error, fs::read, time::Duration};
 
 use reqwest::{Certificate, Client, Identity, IntoUrl, Response, StatusCode};
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 use crate::{
     config::Config,
@@ -79,7 +79,7 @@ impl Etsi020Client {
         let status = response.status();
 
         if status != expected_status {
-            info!("Response status error. Expected {expected_status}, received {status}");
+            warn!("Response status error. Expected {expected_status}, received {status}");
 
             let err_body = response.json::<ErrorResponse>().await.inspect_err(|e| {
                 error!("Could not parse response JSON body. Error: {} ({:?})", e, e)

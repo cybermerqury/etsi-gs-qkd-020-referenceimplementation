@@ -7,7 +7,7 @@ pub mod types;
 
 use std::process::exit;
 use tokio::signal::ctrl_c;
-use tracing::{error, info, Level};
+use tracing::{error, info};
 
 use crate::{
     config::{AppState, Config},
@@ -20,7 +20,7 @@ async fn main() -> std::io::Result<()> {
     let config = Config::new();
 
     tracing_subscriber::fmt()
-        .with_max_level(Level::DEBUG)
+        .with_max_level(config.log_level)
         .init();
 
     let tls_config = build_tls_configuration(&config).unwrap_or_else(|e| {
