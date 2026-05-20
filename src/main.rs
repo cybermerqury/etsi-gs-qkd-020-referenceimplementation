@@ -7,7 +7,7 @@ pub mod types;
 
 use std::process::exit;
 use tokio::signal::ctrl_c;
-use tracing::{info, Level};
+use tracing::{info, warn, Level};
 
 use crate::{
     config::{AppState, Config},
@@ -45,10 +45,10 @@ async fn main() -> std::io::Result<()> {
     // In the meantime, let the server service requests.
     tokio::select! {
         _ = server => {
-            info!("Server exited.")
+            warn!("Server exited.")
         },
         _ = ext_keys_subsystem(app_state.clone()) => {
-            info!("ext_keys caller subsystem exited.");
+            warn!("ext_keys caller subsystem exited.");
         },
         _ = ctrl_c() => {
             info!("Signal caught. Terminating.")

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use reqwest::StatusCode;
-use tracing::info;
+use tracing::{error, info};
 
 use crate::{
     config::{AppState, Config},
@@ -21,7 +21,7 @@ async fn ext_keys(
     info!("Request received: {request_body:?}.");
 
     if let Err(validation_err) = validate_request(&app_state.config, &request_body) {
-        info!("EXT_KEYS: Validation error in request.");
+        error!("EXT_KEYS: Validation error in request.");
         return HttpResponse::BadRequest().json(validation_err);
     }
 
@@ -118,6 +118,6 @@ async fn call_ack(
         .await
     {
         Ok(()) => info!("ext_keys servicing concluded."),
-        Err(e) => info!("Error calling 'ack' for 'ext_keys'. Error: {e}"),
+        Err(e) => error!("Error calling 'ack' for 'ext_keys'. Error: {e}"),
     }
 }

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use tracing::info;
+use tracing::{debug, error, info};
 use uuid::Uuid;
 
 use crate::{
@@ -15,7 +15,7 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
 
     // If disabled, sleep indefinitely.
     if !ss_config.enabled {
-        info!("Send ext_keys subsystem is disabled by config.");
+        debug!("Send ext_keys subsystem is disabled by config.");
         tokio::time::sleep(Duration::MAX).await;
         return;
     }
@@ -24,7 +24,7 @@ pub async fn ext_keys_subsystem(app_state: AppState) {
     let ext_keys_url = match ss_config.target_url.join("/kmapi/v1/ext_keys") {
         Ok(url) => url,
         Err(e) => {
-            info!("Failed to construct ext_keys URL. Error: {e}");
+            error!("Failed to construct ext_keys URL. Error: {e}");
             return;
         }
     };

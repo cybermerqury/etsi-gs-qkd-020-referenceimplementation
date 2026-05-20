@@ -1,7 +1,7 @@
 use std::{error::Error, fs::read, time::Duration};
 
 use reqwest::{Certificate, Client, Identity, IntoUrl, Response, StatusCode};
-use tracing::info;
+use tracing::{error, info};
 
 use crate::{
     config::Config,
@@ -43,12 +43,12 @@ impl Etsi020Client {
             .json(&body)
             .send()
             .await
-            .inspect_err(|e| info!("Failed to send 'ext_keys' request. Error: {:?}", e))?;
+            .inspect_err(|e| error!("Failed to send 'ext_keys' request. Error: {:?}", e))?;
 
         Self::process_response_no_body(ext_keys_url_response, StatusCode::ACCEPTED)
             .await
             .inspect(|_| info!("EXT_KEYS url call OK."))
-            .inspect_err(|e| info!("EXT_KEYS error processing response. Error: {e}"))
+            .inspect_err(|e| error!("EXT_KEYS error processing response. Error: {e}"))
     }
 
     /// Send an `ack` request to the supplied URL.
@@ -59,12 +59,12 @@ impl Etsi020Client {
             .json(&body)
             .send()
             .await
-            .inspect_err(|e| info!("Failed to send 'ack' request. Error: {:?}", e))?;
+            .inspect_err(|e| error!("Failed to send 'ack' request. Error: {:?}", e))?;
 
         Self::process_response_no_body(ack_url_response, StatusCode::OK)
             .await
             .inspect(|_| info!("ACK url call OK."))
-            .inspect_err(|e| info!("ACK error processing response. Error: {e}"))
+            .inspect_err(|e| error!("ACK error processing response. Error: {e}"))
     }
 
     /// Process an ETSI020 response, assuming no response body is present.
@@ -82,7 +82,7 @@ impl Etsi020Client {
             info!("Response status error. Expected {expected_status}, received {status}");
 
             let err_body = response.json::<ErrorResponse>().await.inspect_err(|e| {
-                info!("Could not parse response JSON body. Error: {} ({:?})", e, e)
+                error!("Could not parse response JSON body. Error: {} ({:?})", e, e)
             })?;
 
             Err(Box::new(err_body))
