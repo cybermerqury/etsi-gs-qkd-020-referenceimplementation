@@ -7,7 +7,7 @@ pub mod types;
 
 use std::process::exit;
 use tokio::signal::ctrl_c;
-use tracing::{info, warn, Level};
+use tracing::{error, info, Level};
 
 use crate::{
     config::{AppState, Config},
@@ -26,13 +26,10 @@ async fn main() -> std::io::Result<()> {
     let tls_config =
         build_tls_configuration(&config.root_cert, &config.public_cert, &config.private_key);
 
-    let app_state = match AppState::new(config) {
-        Ok(state) => state,
-        Err(e) => {
-            info!("Failed to initialise app state. Exiting. Error: {e}");
-            exit(1);
-        }
-    };
+    let app_state = AppState::new(config).unwrap_or_else(|e| {
+        error!("Failed to initialise app state. Exiting. Error: {e}");
+        exit(1);
+    });
 
     info!(
         "Listening on {}:{}",
@@ -44,14 +41,17 @@ async fn main() -> std::io::Result<()> {
     // Wait until either a task exits prematurely, or a SIGTERM is caught.
     // In the meantime, let the server service requests.
     tokio::select! {
-        _ = server => {
-            warn!("Server exited.")
-        },
-        _ = ext_keys_subsystem(app_state.clone()) => {
-            warn!("ext_keys caller subsystem exited.");
-        },
+        Err(e) = server => {
+            error!("Server exited. Error: {e}");
+        }
+        Err(e) = ext_keys_subsystem(app_state.clone()) => {
+            error!("ext_keys caller subsystem exited. Error: {e}");
+        }
         _ = ctrl_c() => {
-            info!("Signal caught. Terminating.")
+            info!("Signal caught. Terminating.");
+        }
+        else => {
+            info!("One of the subsystems shut down. Exiting.");
         }
     }
 

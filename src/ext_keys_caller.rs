@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::error::Error;
 
 use tracing::{debug, error, info};
 use uuid::Uuid;
@@ -10,24 +10,24 @@ use crate::{
 
 /// The ext_keys_subsystem sends out `ext_keys` requests at fixed intervals.
 /// This emulates the behavior of a third-party KMS sending inbound requests of its own.
-pub async fn ext_keys_subsystem(app_state: AppState) {
+pub async fn ext_keys_subsystem(app_state: AppState) -> Result<(), Box<dyn Error>> {
     let ss_config = app_state.config.send_ext_keys_config;
 
     // If disabled, sleep indefinitely.
     if !ss_config.enabled {
         debug!("Send ext_keys subsystem is disabled by config.");
-        tokio::time::sleep(Duration::MAX).await;
-        return;
+
+        return Ok(());
     }
 
     let mut interval = tokio::time::interval(ss_config.dispatch_interval);
-    let ext_keys_url = match ss_config.target_url.join("/kmapi/v1/ext_keys") {
-        Ok(url) => url,
-        Err(e) => {
-            error!("Failed to construct ext_keys URL. Error: {e}");
-            return;
-        }
-    };
+    let ext_keys_url = ss_config
+        .target_url
+        .join("/kmapi/v1/ext_keys")
+        .inspect_err(|e| error!("Failed to construct ext_keys URL. Error: {e}"))?;
+
+    // Remove the first tick since it happens instantaneously.
+    interval.tick().await;
 
     loop {
         interval.tick().await;
