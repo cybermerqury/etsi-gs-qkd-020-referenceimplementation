@@ -1,32 +1,38 @@
-use std::path::Path;
+use std::{error::Error, sync::Arc};
 
+use actix_tls::accept::rustls_0_23::reexports::ServerConfig;
 use actix_web::{dev::Server, middleware::Logger, web, App, HttpServer};
-use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod, SslVerifyMode};
+use rustls::{
+    pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer},
+    server::WebPkiClientVerifier,
+    RootCertStore,
+};
 
 use crate::{
-    config::AppState,
+    config::{AppState, Config},
     endpoints::{ack::ack, ext_keys::ext_keys},
 };
 
 /// Initialize an mTLS configuration for the actix-web server.
-pub fn build_tls_configuration(
-    ca_cert: impl AsRef<Path>,
-    cert: impl AsRef<Path>,
-    key: impl AsRef<Path>,
-) -> SslAcceptorBuilder {
-    let mut builder = SslAcceptor::mozilla_modern_v5(SslMethod::tls()).unwrap();
+pub fn build_tls_configuration(config: &Config) -> Result<ServerConfig, Box<dyn Error>> {
+    let mut root_store = RootCertStore::empty();
+    root_store.add(CertificateDer::from_pem_file(&config.root_cert)?)?;
 
-    builder.set_ca_file(ca_cert).unwrap();
-    builder.set_private_key_file(key, SslFiletype::PEM).unwrap();
-    builder.set_certificate_chain_file(cert).unwrap();
-    builder.set_verify(SslVerifyMode::PEER | SslVerifyMode::FAIL_IF_NO_PEER_CERT);
+    let verifier = WebPkiClientVerifier::builder(Arc::new(root_store)).build()?;
 
-    builder
+    let server_cert = CertificateDer::from_pem_file(&config.public_cert)?;
+    let server_key = PrivateKeyDer::from_pem_file(&config.private_key)?;
+
+    let server_config = ServerConfig::builder()
+        .with_client_cert_verifier(verifier)
+        .with_single_cert(vec![server_cert], server_key)?;
+
+    Ok(server_config)
 }
 
 /// Initialize the server and begin serving requests.
 /// Returns a handle which can be used to remotely abort the server.
-pub fn run_server(app_state: AppState, tls_config: SslAcceptorBuilder) -> std::io::Result<Server> {
+pub fn run_server(app_state: AppState, tls_config: ServerConfig) -> std::io::Result<Server> {
     let bind_addr = (app_state.config.ip_addr.clone(), app_state.config.port_num);
 
     let server = HttpServer::new(move || {
@@ -36,7 +42,7 @@ pub fn run_server(app_state: AppState, tls_config: SslAcceptorBuilder) -> std::i
             .service(ack)
             .wrap(Logger::default())
     })
-    .bind_openssl(bind_addr, tls_config)?
+    .bind_rustls_0_23(bind_addr, tls_config)?
     .run();
 
     Ok(server)

@@ -89,6 +89,9 @@ build_release:
 build_image: build_release
 	docker build -t merqury/etsi_020_ref_impl:0.1.0 -f Dockerfile .
 
+clean_image:
+	docker image rm merqury/etsi_020_ref_impl:0.1.0
+
 build_clean:
 	cargo clean
 

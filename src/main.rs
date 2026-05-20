@@ -23,8 +23,10 @@ async fn main() -> std::io::Result<()> {
         .with_max_level(Level::DEBUG)
         .init();
 
-    let tls_config =
-        build_tls_configuration(&config.root_cert, &config.public_cert, &config.private_key);
+    let tls_config = build_tls_configuration(&config).unwrap_or_else(|e| {
+        error!("Failed to load TLS server config. Error: {e}");
+        exit(1);
+    });
 
     let app_state = AppState::new(config).unwrap_or_else(|e| {
         error!("Failed to initialise app state. Exiting. Error: {e}");
