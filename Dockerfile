@@ -1,12 +1,5 @@
 FROM ubuntu:24.04
 
-RUN apt update     && \
-    apt upgrade -y && \
-    apt install -y    \
-    libpq-dev         \
-    libssl-dev        \
-    && rm -rf /var/lib/apt/lists/*
-
 # Create certificates folder
 RUN mkdir -p /usr/certs
 
