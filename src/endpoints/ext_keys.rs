@@ -78,6 +78,10 @@ fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Result<()
         ));
     }
 
+    // TODO: Add extensions_mandatory and extensions_optional validation
+    // * If defined, ensure is a JSON object.
+    // * Ensure length is >= 1 and <= 1024.
+
     Ok(())
 }
 
