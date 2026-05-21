@@ -37,7 +37,7 @@ async fn ext_keys(
 }
 
 /// Validate the `ext_keys` request body. If valid, return `None`, else return `Some`.
-fn validate_request(_config: &Config, request_body: &ExtKeysRequest) -> Result<(), ErrorResponse> {
+fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Result<(), ErrorResponse> {
     let mut valid_request = request_body.target_sae_ids.len() == 1;
     valid_request = valid_request && (!request_body.initiator_sae_id.is_empty());
     valid_request = valid_request
@@ -53,32 +53,32 @@ fn validate_request(_config: &Config, request_body: &ExtKeysRequest) -> Result<(
 
     // TODO: Re-enable after estonia.
 
-    // if !config
-    //     .third_party_sae_ids
-    //     .contains(&request_body.initiator_sae_id)
-    // {
-    //     return Err(ErrorResponse::new(
-    //         "Invalid parameter",
-    //         400,
-    //         "Invalid initiator_sae_id. Passed SAE ID is not recognized.",
-    //         [("initiator_sae_id", &request_body.initiator_sae_id)],
-    //     ));
-    // }
+    if !config
+        .intra_network_sae_ids
+        .contains(&request_body.initiator_sae_id)
+    {
+        return Err(ErrorResponse::new(
+            "Invalid parameter",
+            400,
+            "Invalid initiator_sae_id. Passed SAE ID is not recognized.",
+            [("initiator_sae_id", &request_body.initiator_sae_id)],
+        ));
+    }
 
-    // let missing_target_sae_ids = request_body
-    //     .target_sae_ids
-    //     .iter()
-    //     .filter(|sae_id| !config.intra_network_sae_ids.contains(&sae_id))
-    //     .map(String::as_str)
-    //     .collect::<Vec<_>>();
+    let missing_target_sae_ids = request_body
+        .target_sae_ids
+        .iter()
+        .filter(|sae_id| !config.third_party_sae_ids.contains(&sae_id))
+        .map(String::as_str)
+        .collect::<Vec<_>>();
 
-    // if missing_target_sae_ids.len() > 0 {
-    //     return Err(ErrorResponse::from_status_code(
-    //         StatusCode::BAD_REQUEST,
-    //         "Invalid target_sae_ids. This instance is not configured for one or more of the supplied SAE IDs.",
-    //         [("target_sae_ids", missing_target_sae_ids.join(","))]
-    //     ));
-    // }
+    if missing_target_sae_ids.len() > 0 {
+        return Err(ErrorResponse::from_status_code(
+            StatusCode::BAD_REQUEST,
+            "Invalid target_sae_ids. This instance is not configured for one or more of the supplied SAE IDs.",
+            [("target_sae_ids", missing_target_sae_ids.join(","))]
+        ));
+    }
 
     // TODO: Add extensions_mandatory and extensions_optional validation
     // * If defined, ensure is a JSON object.
