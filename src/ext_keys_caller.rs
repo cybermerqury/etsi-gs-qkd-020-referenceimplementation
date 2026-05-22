@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use base64::{engine::general_purpose::STANDARD, Engine};
 use tracing::{debug, error, info};
 use uuid::Uuid;
 
@@ -7,6 +8,10 @@ use crate::{
     config::AppState,
     types::{ext_keys::ExtKeysRequest, KeyValueElement},
 };
+
+const KEY_LEN_BITS: usize = 512;
+const KEY_LEN_BYTES: usize = KEY_LEN_BITS / 8;
+const KEY_COUNT: usize = 1;
 
 /// The ext_keys_subsystem sends out `ext_keys` requests at fixed intervals.
 /// This emulates the behavior of a third-party KMS sending inbound requests of its own.
@@ -32,11 +37,16 @@ pub async fn ext_keys_subsystem(app_state: AppState) -> Result<(), Box<dyn Error
     loop {
         interval.tick().await;
 
-        let body = ExtKeysRequest {
-            keys: vec![KeyValueElement {
+        let keys = rand::random_iter::<[u8; KEY_LEN_BYTES]>()
+            .take(KEY_COUNT)
+            .map(|val| KeyValueElement {
                 key_id: Uuid::now_v7(),
-                value: "wHHVxRwDJs3/bXd38GHP3oe4svTuRpZS0yCC7x4Ly+s=".to_string(),
-            }],
+                value: STANDARD.encode(val),
+            })
+            .collect();
+
+        let body = ExtKeysRequest {
+            keys,
             ack_callback_url: ss_config.ack_url.clone(),
             extension_mandatory: None,
             extension_optional: None,

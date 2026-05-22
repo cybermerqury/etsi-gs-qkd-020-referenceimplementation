@@ -17,3 +17,4 @@ reqwest = { version = "0.13.3", features = ["json"] }
 tracing-subscriber = "0.3.23"
 actix-tls = { version = "3.5.0", features = ["rustls-0_23"] }
 rustls = { version = "0.23.40", default-features = false, features = [ "std", "prefer-post-quantum" ] }
+rand = "0.10.1"
