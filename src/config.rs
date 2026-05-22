@@ -32,6 +32,9 @@ const ENV_SEND_OUTBOUND_EXT_KEYS_INTERVAL_SECONDS: &str =
     "ETSI_020_REF_IMPL_SEND_EXT_KEYS_INTERVAL_SECONDS";
 const ENV_SEND_OUTBOUND_EXT_KEYS_BASE_URL: &str = "ETSI_020_REF_IMPL_SEND_EXT_KEYS_BASE_URL";
 const ENV_SEND_OUTBOUND_EXT_KEYS_ACK_URL: &str = "ETSI_020_REF_IMPL_SEND_EXT_KEYS_ACK_CALLBACK_URL";
+const ENV_SEND_OUTBOUND_EXT_KEYS_KEY_COUNT: &str = "ETSI_020_REF_IMPL_SEND_EXT_KEYS_KEY_COUNT";
+const ENV_SEND_OUTBOUND_EXT_KEYS_KEY_SIZE_BITS: &str =
+    "ETSI_020_REF_IMPL_SEND_EXT_KEYS_KEY_SIZE_BITS";
 
 #[derive(Clone, Debug)]
 pub struct SendExtKeysConfig {
@@ -39,6 +42,8 @@ pub struct SendExtKeysConfig {
     pub dispatch_interval: Duration,
     pub target_url: Url,
     pub ack_url: Url,
+    pub key_count: u32,
+    pub key_size_bits: u32,
 }
 
 impl SendExtKeysConfig {
@@ -50,6 +55,8 @@ impl SendExtKeysConfig {
             )),
             target_url: extract_value(ENV_SEND_OUTBOUND_EXT_KEYS_BASE_URL),
             ack_url: extract_value(ENV_SEND_OUTBOUND_EXT_KEYS_ACK_URL),
+            key_count: extract_value(ENV_SEND_OUTBOUND_EXT_KEYS_KEY_COUNT),
+            key_size_bits: extract_value(ENV_SEND_OUTBOUND_EXT_KEYS_KEY_SIZE_BITS),
         }
     }
 }

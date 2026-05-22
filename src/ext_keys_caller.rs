@@ -9,10 +9,6 @@ use crate::{
     types::{ext_keys::ExtKeysRequest, KeyValueElement},
 };
 
-const KEY_LEN_BITS: usize = 512;
-const KEY_LEN_BYTES: usize = KEY_LEN_BITS / 8;
-const KEY_COUNT: usize = 1;
-
 /// The ext_keys_subsystem sends out `ext_keys` requests at fixed intervals.
 /// This emulates the behavior of a third-party KMS sending inbound requests of its own.
 pub async fn ext_keys_subsystem(app_state: AppState) -> Result<(), Box<dyn Error>> {
@@ -37,11 +33,17 @@ pub async fn ext_keys_subsystem(app_state: AppState) -> Result<(), Box<dyn Error
     loop {
         interval.tick().await;
 
-        let keys = rand::random_iter::<[u8; KEY_LEN_BYTES]>()
-            .take(KEY_COUNT)
-            .map(|val| KeyValueElement {
-                key_id: Uuid::now_v7(),
-                value: STANDARD.encode(val),
+        // Construct a vector of key-values of the required quantity and key size.
+        let keys = (0..ss_config.key_count)
+            .into_iter()
+            .map(|_| {
+                let mut val = vec![0u8; (ss_config.key_size_bits / 8) as usize];
+                rand::fill(&mut val[..]);
+
+                KeyValueElement {
+                    key_id: Uuid::now_v7(),
+                    value: STANDARD.encode(val),
+                }
             })
             .collect();
 
