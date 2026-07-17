@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{collections::HashMap, time::Duration};
 
 use actix_web::{HttpResponse, Responder, post, web};
 use reqwest::StatusCode;
@@ -36,18 +36,42 @@ async fn ext_keys(
     HttpResponse::Accepted().finish()
 }
 
-/// Validate the `ext_keys` request body. If valid, return `None`, else return `Some`.
+/// Validate the `ext_keys` request body.
 fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Result<(), ErrorResponse> {
-    let mut valid_request = request_body.target_sae_ids.len() == 1;
-    valid_request = valid_request && (!request_body.initiator_sae_id.is_empty());
-    valid_request = valid_request
-        && ((request_body.keys.len() == 1) && request_body.keys[0].is_key_value_valid());
+    let mut err_details: HashMap<String, String> = HashMap::new();
 
-    if !valid_request {
+    if request_body.target_sae_ids.is_empty() {
+        err_details.insert(
+            "target_sae_ids".to_string(),
+            "Empty target_sae_ids array.".to_string(),
+        );
+    }
+
+    if request_body.initiator_sae_id.trim().is_empty() {
+        err_details.insert(
+            "target_sae_ids".to_string(),
+            "Empty initiator_sae_ids.".to_string(),
+        );
+    }
+
+    if request_body.keys.is_empty() {
+        err_details.insert("keys".to_string(), "Empty keys array".to_string());
+    }
+
+    request_body
+        .keys
+        .iter()
+        .filter_map(|key| Some(key.is_key_value_valid().err()?.details))
+        .flatten()
+        .for_each(|(k, v)| {
+            err_details.insert(k, v);
+        });
+
+    if !err_details.is_empty() {
         return Err(ErrorResponse::from_status_code(
             StatusCode::BAD_REQUEST,
-            "Error message",
-            [("Details 1", "Details 1 message")],
+            "Validation failed",
+            err_details,
         ));
     }
 

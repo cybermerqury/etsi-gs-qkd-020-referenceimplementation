@@ -5,7 +5,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 echo "Calling with multiple key values in the keys element"
 curl                                              \
   -i                                              \
-  --url "https://localhost:8080/kmapi/v1/ext_keys" \
+  --url "https://localhost:8888/kmapi/v1/ext_keys" \
   --cert "${SCRIPT_DIR}/../certificates/gateway_2.pem" \
   --key "${SCRIPT_DIR}/../certificates/gateway_2.key" \
   --cacert "${SCRIPT_DIR}/../certificates/root.pem" \
@@ -24,13 +24,15 @@ curl                                              \
   "initiator_sae_id": "encryptor1",
   "target_sae_ids": [
     "encryptor2"
-  ]
+  ],
+  "ack_callback_url": "https://localhost:8889/kmapi/v1/ext_keys/ack",
+  "extension_mandatory": {}
 }'
 
-echo "Calling with multiple target sae ids"
+printf "\n\nCalling with multiple target sae ids"
 curl                                              \
   -i                                              \
-  --url "https://localhost:8080/kmapi/v1/ext_keys" \
+  --url "https://localhost:8888/kmapi/v1/ext_keys" \
   --cert "${SCRIPT_DIR}/../certificates/gateway_2.pem" \
   --key "${SCRIPT_DIR}/../certificates/gateway_2.key" \
   --cacert "${SCRIPT_DIR}/../certificates/root.pem" \
@@ -46,13 +48,15 @@ curl                                              \
   "target_sae_ids": [
     "encryptor2",
     "encryptor1"
-  ]
+  ],
+  "ack_callback_url": "https://localhost:8889/kmapi/v1/ext_keys/ack",
+  "extension_mandatory": {}
 }'
 
-echo "Calling with multiple key values in the keys element and target sae ids"
+printf "\n\nCalling with multiple key values in the keys element and target sae ids"
 curl                                              \
   -i                                              \
-  --url "https://localhost:8080/kmapi/v1/ext_keys" \
+  --url "https://localhost:8888/kmapi/v1/ext_keys" \
   --cert "${SCRIPT_DIR}/../certificates/gateway_2.pem" \
   --key "${SCRIPT_DIR}/../certificates/gateway_2.key" \
   --cacert "${SCRIPT_DIR}/../certificates/root.pem" \
@@ -72,13 +76,15 @@ curl                                              \
   "target_sae_ids": [
     "encryptor1",
     "encryptor2"
-  ]
+  ],
+  "ack_callback_url": "https://localhost:8889/kmapi/v1/ext_keys/ack",
+  "extension_mandatory": {}
 }'
 
-echo "Calling with invalid, not equal to 256bits key size"
+printf "\n\nCalling with invalid, not equal to 256bits key size"
 curl                                              \
   -i                                              \
-  --url "https://localhost:8080/kmapi/v1/ext_keys" \
+  --url "https://localhost:8888/kmapi/v1/ext_keys" \
   --cert "${SCRIPT_DIR}/../certificates/gateway_2.pem" \
   --key "${SCRIPT_DIR}/../certificates/gateway_2.key" \
   --cacert "${SCRIPT_DIR}/../certificates/root.pem" \
@@ -93,5 +99,7 @@ curl                                              \
   "initiator_sae_id": "encryptor1",
   "target_sae_ids": [
     "encryptor2"
-  ]
+  ],
+  "ack_callback_url": "https://localhost:8889/kmapi/v1/ext_keys/ack",
+  "extension_mandatory": {}
 }'

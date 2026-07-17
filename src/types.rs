@@ -15,10 +15,29 @@ pub struct KeyValueElement {
 }
 
 impl KeyValueElement {
-    pub fn is_key_value_valid(&self) -> bool {
-        base64::engine::general_purpose::STANDARD
+    pub fn is_key_value_valid(&self) -> Result<(), ErrorResponse> {
+        let v = base64::engine::general_purpose::STANDARD
             .decode(&self.value)
-            .is_ok_and(|v| v.len() == 32)
+            .map_err(|e| {
+                ErrorResponse::from_status_code(
+                    StatusCode::BAD_REQUEST,
+                    "Bad key decode",
+                    [(self.key_id, e)],
+                )
+            })?;
+
+        if v.len() != 32 {
+            return Err(ErrorResponse::from_status_code(
+                StatusCode::BAD_REQUEST,
+                "Bad key decode",
+                [(
+                    self.key_id,
+                    format!("Expecting 32 decoded bytes, found {}", v.len()),
+                )],
+            ));
+        }
+
+        Ok(())
     }
 }
 
