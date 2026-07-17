@@ -1,11 +1,13 @@
+// SPDX-FileCopyrightText: © 2026 Merqury Cybersecurity Ltd <info@merqury.eu>
+// SPDX-License-Identifier: AGPL-3.0-only
 use std::{error::Error, sync::Arc};
 
 use actix_tls::accept::rustls_0_23::reexports::ServerConfig;
-use actix_web::{dev::Server, middleware::Logger, web, App, HttpServer};
+use actix_web::{App, HttpServer, dev::Server, middleware::Logger, web};
 use rustls::{
-    pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer},
-    server::WebPkiClientVerifier,
     RootCertStore,
+    pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject},
+    server::WebPkiClientVerifier,
 };
 
 use crate::{

@@ -2,6 +2,7 @@
 name = "etsi-gs-qkd-020-referenceimplementation"
 version = "0.1.0"
 edition = "2024"
+license = "AGPL-3.0-only"
 
 [dependencies]
 actix-web = { version = "4.14.0", features = ["rustls-0_23"] }

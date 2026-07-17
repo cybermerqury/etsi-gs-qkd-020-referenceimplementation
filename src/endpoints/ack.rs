@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: © 2026 Merqury Cybersecurity Ltd <info@merqury.eu>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use std::{collections::HashMap, error::Error};
 
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, post, web};
 use reqwest::StatusCode;
 use tracing::info;
 
-use crate::types::{ack::AckRequest, ErrorResponse};
+use crate::types::{ErrorResponse, ack::AckRequest};
 
 #[post("/kmapi/v1/ext_keys/ack")]
 pub async fn ack(request_body: web::Json<AckRequest>) -> impl Responder {

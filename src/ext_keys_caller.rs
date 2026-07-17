@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: © 2026 Merqury Cybersecurity Ltd <info@merqury.eu>
+// SPDX-License-Identifier: AGPL-3.0-only
 use std::error::Error;
 
 use base64::{Engine, engine::general_purpose::STANDARD};

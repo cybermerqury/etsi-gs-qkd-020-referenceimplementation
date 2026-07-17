@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: © 2026 Merqury Cybersecurity Ltd <info@merqury.eu>
+// SPDX-License-Identifier: AGPL-3.0-only
 use std::{collections::HashMap, time::Duration};
 
 use actix_web::{HttpResponse, Responder, post, web};

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: © 2026 Merqury Cybersecurity Ltd <info@merqury.eu>
+// SPDX-License-Identifier: AGPL-3.0-only
 use std::{error::Error, fs::read, time::Duration};
 
 use reqwest::{Certificate, Client, Identity, IntoUrl, Response, StatusCode};
@@ -5,7 +7,7 @@ use tracing::{error, info, warn};
 
 use crate::{
     config::Config,
-    types::{ack::AckRequest, ext_keys::ExtKeysRequest, ErrorResponse},
+    types::{ErrorResponse, ack::AckRequest, ext_keys::ExtKeysRequest},
 };
 
 #[derive(Clone)]
