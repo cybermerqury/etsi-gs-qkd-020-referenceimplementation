@@ -1,5 +1,5 @@
 [package]
-name = "etsi-020-ref-impl"
+name = "etsi-gs-qkd-020-referenceimplementation"
 version = "0.1.0"
 edition = "2024"
 

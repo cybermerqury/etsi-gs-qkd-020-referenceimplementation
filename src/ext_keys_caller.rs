@@ -1,12 +1,12 @@
 use std::error::Error;
 
-use base64::{engine::general_purpose::STANDARD, Engine};
+use base64::{Engine, engine::general_purpose::STANDARD};
 use tracing::{debug, error, info};
 use uuid::Uuid;
 
 use crate::{
     config::AppState,
-    types::{ext_keys::ExtKeysRequest, KeyValueElement},
+    types::{KeyValueElement, ext_keys::ExtKeysRequest},
 };
 
 /// The ext_keys_subsystem sends out `ext_keys` requests at fixed intervals.
@@ -14,7 +14,6 @@ use crate::{
 pub async fn ext_keys_subsystem(app_state: AppState) -> Result<(), Box<dyn Error>> {
     let ss_config = app_state.config.send_ext_keys_config;
 
-    // If disabled, sleep indefinitely.
     if !ss_config.enabled {
         debug!("Send ext_keys subsystem is disabled by config.");
 
