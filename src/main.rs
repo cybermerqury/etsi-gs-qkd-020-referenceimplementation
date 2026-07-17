@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: © 2026 Merqury Cybersecurity Ltd <info@merqury.eu>
+// SPDX-License-Identifier: AGPL-3.0-only
 pub mod client;
 pub mod config;
 pub mod endpoints;
@@ -7,6 +9,7 @@ pub mod types;
 
 use std::process::exit;
 use tokio::signal::ctrl_c;
+use tracing::{error, info};
 
 use crate::{
     config::{AppState, Config},
@@ -18,18 +21,21 @@ use crate::{
 async fn main() -> std::io::Result<()> {
     let config = Config::new();
 
-    let tls_config =
-        build_tls_configuration(&config.root_cert, &config.public_cert, &config.private_key);
+    tracing_subscriber::fmt()
+        .with_max_level(config.log_level)
+        .init();
 
-    let app_state = match AppState::new(config) {
-        Ok(state) => state,
-        Err(e) => {
-            println!("Failed to initialise app state. Exiting. Error: {e}");
-            exit(1);
-        }
-    };
+    let tls_config = build_tls_configuration(&config).unwrap_or_else(|e| {
+        error!("Failed to load TLS server config. Error: {e}");
+        exit(1);
+    });
 
-    println!(
+    let app_state = AppState::new(config).unwrap_or_else(|e| {
+        error!("Failed to initialise app state. Exiting. Error: {e}");
+        exit(1);
+    });
+
+    info!(
         "Listening on {}:{}",
         app_state.config.ip_addr, app_state.config.port_num
     );
@@ -39,18 +45,21 @@ async fn main() -> std::io::Result<()> {
     // Wait until either a task exits prematurely, or a SIGTERM is caught.
     // In the meantime, let the server service requests.
     tokio::select! {
-        _ = server => {
-            println!("Server exited.")
-        },
-        _ = ext_keys_subsystem(app_state.clone()) => {
-            println!("ext_keys caller subsystem exited.");
-        },
+        Err(e) = server => {
+            error!("Server exited. Error: {e}");
+        }
+        Err(e) = ext_keys_subsystem(app_state.clone()) => {
+            error!("ext_keys caller subsystem exited. Error: {e}");
+        }
         _ = ctrl_c() => {
-            println!("Signal caught. Terminating.")
+            info!("Signal caught. Terminating.");
+        }
+        else => {
+            info!("One of the subsystems shut down. Exiting.");
         }
     }
 
-    println!("Shutting down.");
+    info!("Shutting down.");
 
     Ok(())
 }

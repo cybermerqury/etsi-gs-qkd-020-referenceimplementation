@@ -1,4 +1,6 @@
-#! /bin/bash
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: © 2026 Merqury Cybersecurity Ltd <info@merqury.eu>
+# SPDX-License-Identifier: AGPL-3.0-only
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 

@@ -1,16 +1,20 @@
 [package]
-name = "etsi-020-ref-impl"
-version = "0.1.0"
-edition = "2021"
+name = "etsi-gs-qkd-020-referenceimplementation"
+version = "1.0.0"
+edition = "2024"
+license = "AGPL-3.0-only"
 
 [dependencies]
-actix-web = {version = "4.13.0", features = ["openssl"]}
+actix-web = { version = "4.14.0", features = ["rustls-0_23"] }
 base64 = "0.22.1"
 tracing = "=0.1.41"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-openssl = { version = "0.10.79" }
-uuid = { version = "1.23.1", features = ["serde", "v7"] }
+uuid = { version = "1.24.0", features = ["serde", "v7"] }
 url = { version = "2.5.8", features = ["serde"] }
-tokio = { version = "1.52.2", features = ["full", "time"] }
-reqwest = { version = "0.13.3", features = ["json"] }
+tokio = { version = "1.53.0", features = ["full", "time"] }
+reqwest = { version = "0.13.4", features = ["json"] }
+tracing-subscriber = "0.3.23"
+actix-tls = { version = "3.5.0", features = ["rustls-0_23"] }
+rustls = { version = "0.23.42", default-features = false, features = [ "std", "prefer-post-quantum" ] }
+rand = "0.10.2"

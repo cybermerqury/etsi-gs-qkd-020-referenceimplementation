@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: © 2026 Merqury Cybersecurity Ltd <info@merqury.eu>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use std::{collections::HashMap, error::Error};
 
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, post, web};
 use reqwest::StatusCode;
+use tracing::info;
 
-use crate::types::{ack::AckRequest, ErrorResponse};
+use crate::types::{ErrorResponse, ack::AckRequest};
 
 #[post("/kmapi/v1/ext_keys/ack")]
 pub async fn ack(request_body: web::Json<AckRequest>) -> impl Responder {
@@ -23,16 +27,23 @@ pub async fn ack(request_body: web::Json<AckRequest>) -> impl Responder {
 }
 
 async fn service_request(request_body: AckRequest) -> Result<(), Box<dyn Error>> {
-    println!(
-        "ACK: Received request. status: {:?}, initiator: '{}', target: '{}', message: '{}'",
-        request_body.ack_status,
-        request_body.initiator_sae_id,
-        request_body.target_sae_id,
-        request_body.message
+    info!(
+        "ACK: Request received. {} total containers to process.",
+        request_body.len()
     );
 
-    for key_id in &request_body.key_ids {
-        println!("ACK: * Acknowledging key_id {}", key_id.key_id);
+    for (i, container) in request_body.iter().enumerate() {
+        info!(
+            "ACK: container {i} status: {:?}, initiator: '{}', target: '{}', message: '{}'",
+            container.ack_status,
+            container.initiator_sae_id,
+            container.target_sae_id,
+            container.message
+        );
+
+        for key_id in &container.key_ids {
+            info!("ACK: * Acknowledging key_id {}", key_id.key_id);
+        }
     }
 
     Ok(())
@@ -40,33 +51,46 @@ async fn service_request(request_body: AckRequest) -> Result<(), Box<dyn Error>>
 
 /// Validate the `ack` request body. If valid, return `None`, else return `Some`.
 fn validate_request(request_body: &AckRequest) -> Result<(), ErrorResponse> {
-    let mut error_details = HashMap::new();
-
-    if request_body.key_ids.is_empty() {
-        error_details.insert("no_key_ids", "No key_ids present in request body.");
-    }
-
-    if request_body.initiator_sae_id.is_empty() {
-        error_details.insert(
-            "no_initiator_sae_id",
-            "No initiator_sae_id present in request body.",
-        );
-    }
-
-    if request_body.target_sae_id.is_empty() {
-        error_details.insert(
-            "no_target_sae_id",
-            "No target_sae_id present in response body.",
-        );
-    }
-
-    if error_details.is_empty() {
-        Ok(())
-    } else {
-        Err(ErrorResponse::from_status_code(
+    if request_body.is_empty() {
+        return Err(ErrorResponse::from_status_code(
             StatusCode::BAD_REQUEST,
-            "Invalid request",
-            error_details,
-        ))
+            "Empty ack array.",
+            [(
+                "ack_container_array",
+                "At least one ack_container is required",
+            )],
+        ));
     }
+
+    for container in request_body.iter() {
+        let mut error_details = HashMap::new();
+
+        if container.key_ids.is_empty() {
+            error_details.insert("no_key_ids", "No key_ids present in request body.");
+        }
+
+        if container.initiator_sae_id.is_empty() {
+            error_details.insert(
+                "no_initiator_sae_id",
+                "No initiator_sae_id present in request body.",
+            );
+        }
+
+        if container.target_sae_id.is_empty() {
+            error_details.insert(
+                "no_target_sae_id",
+                "No target_sae_id present in response body.",
+            );
+        }
+
+        if !error_details.is_empty() {
+            return Err(ErrorResponse::from_status_code(
+                StatusCode::BAD_REQUEST,
+                "Invalid request",
+                error_details,
+            ));
+        }
+    }
+
+    Ok(())
 }

@@ -1,0 +1,21 @@
+FROM rust:1.93-trixie AS builder
+
+RUN mkdir -p /bin
+RUN mkdir -p /usr/src/etsi-gs-qkd-020-referenceimplementation
+WORKDIR /usr/src/etsi-gs-qkd-020-referenceimplementation
+
+RUN --mount=type=bind,source=src,target=src \
+    --mount=type=bind,source=Cargo.toml,target=Cargo.toml \
+    --mount=type=bind,source=Cargo.lock,target=Cargo.lock \
+    --mount=type=cache,target=/usr/src/etsi-gs-qkd-020-referenceimplementation/target/ \
+    --mount=type=cache,target=/usr/local/cargo/git/db/ \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --locked --release && \
+    cp target/release/etsi-gs-qkd-020-referenceimplementation /bin
+
+FROM debian:trixie-slim AS base
+
+WORKDIR /bin/
+COPY --from=builder /bin/etsi-gs-qkd-020-referenceimplementation ./
+
+ENTRYPOINT [ "/bin/etsi-gs-qkd-020-referenceimplementation" ]

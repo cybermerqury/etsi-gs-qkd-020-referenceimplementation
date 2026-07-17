@@ -1,8 +1,14 @@
-use std::{error::Error, fs::read, path::Path, time::Duration};
+// SPDX-FileCopyrightText: © 2026 Merqury Cybersecurity Ltd <info@merqury.eu>
+// SPDX-License-Identifier: AGPL-3.0-only
+use std::{error::Error, fs::read, time::Duration};
 
 use reqwest::{Certificate, Client, Identity, IntoUrl, Response, StatusCode};
+use tracing::{error, info, warn};
 
-use crate::types::{ack::AckRequest, ext_keys::ExtKeysRequest, ErrorResponse};
+use crate::{
+    config::Config,
+    types::{ErrorResponse, ack::AckRequest, ext_keys::ExtKeysRequest},
+};
 
 #[derive(Clone)]
 pub struct Etsi020Client {
@@ -10,14 +16,11 @@ pub struct Etsi020Client {
 }
 
 impl Etsi020Client {
-    pub fn new(
-        root_path: impl AsRef<Path>,
-        public_cert_path: impl AsRef<Path>,
-        private_key_path: impl AsRef<Path>,
-    ) -> Result<Self, Box<dyn Error>> {
-        let root_cert = Certificate::from_pem(&read(&root_path)?)?;
-        let client_cert = read(&public_cert_path)?;
-        let client_key = read(&private_key_path)?;
+    pub fn new(config: &Config) -> Result<Self, Box<dyn Error>> {
+        let root_cert = Certificate::from_pem(&read(&config.client_root_cert)?)?;
+        let client_cert = read(&config.client_public_cert)?;
+        let client_key = read(&config.client_private_key)?;
+
         let identity = Identity::from_pem(&[client_cert, client_key].concat())?;
 
         let client = reqwest::Client::builder()
@@ -42,12 +45,12 @@ impl Etsi020Client {
             .json(&body)
             .send()
             .await
-            .inspect_err(|e| println!("Failed to send 'ext_keys' request. Error: {:?}", e))?;
+            .inspect_err(|e| error!("Failed to send 'ext_keys' request. Error: {:?}", e))?;
 
         Self::process_response_no_body(ext_keys_url_response, StatusCode::ACCEPTED)
             .await
-            .inspect(|_| println!("EXT_KEYS url call OK."))
-            .inspect_err(|e| println!("EXT_KEYS error processing response. Error: {e}"))
+            .inspect(|_| info!("EXT_KEYS url call OK."))
+            .inspect_err(|e| error!("EXT_KEYS error processing response. Error: {e}"))
     }
 
     /// Send an `ack` request to the supplied URL.
@@ -58,12 +61,12 @@ impl Etsi020Client {
             .json(&body)
             .send()
             .await
-            .inspect_err(|e| println!("Failed to send 'ack' request. Error: {:?}", e))?;
+            .inspect_err(|e| error!("Failed to send 'ack' request. Error: {:?}", e))?;
 
         Self::process_response_no_body(ack_url_response, StatusCode::OK)
             .await
-            .inspect(|_| println!("ACK url call OK."))
-            .inspect_err(|e| println!("ACK error processing response. Error: {e}"))
+            .inspect(|_| info!("ACK url call OK."))
+            .inspect_err(|e| error!("ACK error processing response. Error: {e}"))
     }
 
     /// Process an ETSI020 response, assuming no response body is present.
@@ -78,10 +81,10 @@ impl Etsi020Client {
         let status = response.status();
 
         if status != expected_status {
-            println!("Response status error. Expected {expected_status}, received {status}");
+            warn!("Response status error. Expected {expected_status}, received {status}");
 
             let err_body = response.json::<ErrorResponse>().await.inspect_err(|e| {
-                println!("Could not parse response JSON body. Error: {} ({:?})", e, e)
+                error!("Could not parse response JSON body. Error: {} ({:?})", e, e)
             })?;
 
             Err(Box::new(err_body))
