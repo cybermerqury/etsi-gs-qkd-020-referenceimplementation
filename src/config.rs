@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: © 2023 Merqury Cybersecurity Ltd <info@merqury.eu>
+// SPDX-FileCopyrightText: © 2026 Merqury Cybersecurity Ltd <info@merqury.eu>
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::{any::type_name, env, error::Error, fmt::Display, str::FromStr, time::Duration};
-use tracing::error;
+use tracing::{Level, error};
 use url::Url;
 
 use crate::client::Etsi020Client;
@@ -13,6 +13,10 @@ use crate::client::Etsi020Client;
 const ENV_ROOT_CERT: &str = "ETSI_020_REF_IMPL_ROOT_CERT";
 const ENV_PRIVATE_KEY: &str = "ETSI_020_REF_IMPL_PRIVATE_KEY";
 const ENV_PUBLIC_CERT: &str = "ETSI_020_REF_IMPL_PUBLIC_CERT";
+const ENV_CLIENT_ROOT_CERT: &str = "ETSI_020_REF_IMPL_CLIENT_ROOT_CERT";
+const ENV_CLIENT_PRIVATE_KEY: &str = "ETSI_020_REF_IMPL_CLIENT_PRIVATE_KEY";
+const ENV_CLIENT_PUBLIC_CERT: &str = "ETSI_020_REF_IMPL_CLIENT_PUBLIC_CERT";
+const ENV_LOG_LEVEL: &str = "ETSI_020_REF_IMPL_LOG_LEVEL";
 const ENV_PORT_NUM: &str = "ETSI_020_REF_IMPL_PORT_NUM";
 const ENV_IP_ADDR: &str = "ETSI_020_REF_IMPL_IP_ADDR";
 const ENV_ACK_CALLBACK_DELAY: &str = "ETSI_020_REF_IMPL_ACK_CALLBACK_DELAY";
@@ -28,6 +32,9 @@ const ENV_SEND_OUTBOUND_EXT_KEYS_INTERVAL_SECONDS: &str =
     "ETSI_020_REF_IMPL_SEND_EXT_KEYS_INTERVAL_SECONDS";
 const ENV_SEND_OUTBOUND_EXT_KEYS_BASE_URL: &str = "ETSI_020_REF_IMPL_SEND_EXT_KEYS_BASE_URL";
 const ENV_SEND_OUTBOUND_EXT_KEYS_ACK_URL: &str = "ETSI_020_REF_IMPL_SEND_EXT_KEYS_ACK_CALLBACK_URL";
+const ENV_SEND_OUTBOUND_EXT_KEYS_KEY_COUNT: &str = "ETSI_020_REF_IMPL_SEND_EXT_KEYS_KEY_COUNT";
+const ENV_SEND_OUTBOUND_EXT_KEYS_KEY_SIZE_BITS: &str =
+    "ETSI_020_REF_IMPL_SEND_EXT_KEYS_KEY_SIZE_BITS";
 
 #[derive(Clone, Debug)]
 pub struct SendExtKeysConfig {
@@ -35,6 +42,8 @@ pub struct SendExtKeysConfig {
     pub dispatch_interval: Duration,
     pub target_url: Url,
     pub ack_url: Url,
+    pub key_count: u32,
+    pub key_size_bits: u32,
 }
 
 impl SendExtKeysConfig {
@@ -46,6 +55,8 @@ impl SendExtKeysConfig {
             )),
             target_url: extract_value(ENV_SEND_OUTBOUND_EXT_KEYS_BASE_URL),
             ack_url: extract_value(ENV_SEND_OUTBOUND_EXT_KEYS_ACK_URL),
+            key_count: extract_value(ENV_SEND_OUTBOUND_EXT_KEYS_KEY_COUNT),
+            key_size_bits: extract_value(ENV_SEND_OUTBOUND_EXT_KEYS_KEY_SIZE_BITS),
         }
     }
 }
@@ -55,6 +66,10 @@ pub struct Config {
     pub root_cert: String,
     pub private_key: String,
     pub public_cert: String,
+    pub client_root_cert: String,
+    pub client_public_cert: String,
+    pub client_private_key: String,
+    pub log_level: Level,
     pub port_num: u16,
     pub ip_addr: String,
     pub ack_callback_delay: Duration,
@@ -69,6 +84,10 @@ impl Config {
             root_cert: extract_string_value(ENV_ROOT_CERT),
             private_key: extract_string_value(ENV_PRIVATE_KEY),
             public_cert: extract_string_value(ENV_PUBLIC_CERT),
+            client_root_cert: extract_string_value(ENV_CLIENT_ROOT_CERT),
+            client_public_cert: extract_string_value(ENV_CLIENT_PRIVATE_KEY),
+            client_private_key: extract_string_value(ENV_CLIENT_PUBLIC_CERT),
+            log_level: extract_value(ENV_LOG_LEVEL),
             port_num: extract_value(ENV_PORT_NUM),
             ip_addr: extract_string_value(ENV_IP_ADDR),
             ack_callback_delay: Duration::from_secs(extract_value(ENV_ACK_CALLBACK_DELAY)),
@@ -87,8 +106,7 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(config: Config) -> Result<Self, Box<dyn Error>> {
-        let client =
-            Etsi020Client::new(&config.root_cert, &config.public_cert, &config.private_key)?;
+        let client = Etsi020Client::new(&config)?;
 
         Ok(Self {
             config,
