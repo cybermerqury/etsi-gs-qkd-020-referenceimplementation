@@ -4,7 +4,7 @@
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-echo "Calling with invalid key, not equal to 256bits key size"
+echo "Calling with multiple key values in the keys element and target sae ids"
 curl                                              \
   -i                                              \
   --url "https://localhost:8888/kmapi/v1/ext_keys" \
@@ -16,12 +16,17 @@ curl                                              \
   "keys": [
     {
       "key_id": "550e8400-e29b-41d4-a716-446655440000",
-      "value": "cRwDJm3eh0ZS"
+      "value": "wHHVxRwDJs3/bXd38GHP3oe4svTuRpZS0yCC7x4Ly+s="
+    },
+    {
+      "key_id": "550e8400-e29b-41d4-a716-446655440000",
+      "value": "wHHVxRwDJs3/bXd38GHP3oe4svTuRpZS0yCC7x4Ly+s="
     }
   ],
   "initiator_sae_id": "encryptor_1",
   "target_sae_ids": [
-    "3rd_party_encryptor_1"
+    "3rd_party_encryptor_1",
+    "3rd_party_encryptor_2"
   ],
   "ack_callback_url": "https://localhost:8889/kmapi/v1/ext_keys/ack",
   "extension_mandatory": {}

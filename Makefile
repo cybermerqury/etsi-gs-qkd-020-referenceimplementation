@@ -76,6 +76,15 @@ clean:
 run_ext_keys:
 	./examples/call_ext_keys.sh
 
+run_ext_keys_multiple_keys:
+	./examples/call_ext_keys_multiple_keys.sh
+
+run_ext_keys_multiple_sae_ids:
+	./examples/call_ext_keys_multiple_sae_ids.sh
+
+run_ext_keys_multiple_keys_and_sae_ids:
+	./examples/call_ext_keys_multiple_keys_and_sae_ids.sh
+
 run_invalid_ext_keys:
 	./examples/call_invalid_ext_keys.sh
 
