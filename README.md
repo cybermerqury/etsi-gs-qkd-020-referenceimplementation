@@ -1,4 +1,4 @@
-# ETSI GS QKD 020 v0.1.0 - Reference Implementation
+# ETSI GS QKD 020 - Reference Implementation
 
 ## Description
 
