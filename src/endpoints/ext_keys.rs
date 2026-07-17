@@ -1,15 +1,15 @@
 use std::time::Duration;
 
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, post, web};
 use reqwest::StatusCode;
 use tracing::{error, info};
 
 use crate::{
     config::{AppState, Config},
     types::{
+        ErrorResponse, KeyIdElement,
         ack::{AckContainer, AckRequest, AckStatus},
         ext_keys::ExtKeysRequest,
-        ErrorResponse, KeyIdElement,
     },
 };
 
@@ -51,8 +51,6 @@ fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Result<()
         ));
     }
 
-    // TODO: Re-enable after estonia.
-
     if !config
         .intra_network_sae_ids
         .contains(&request_body.initiator_sae_id)
@@ -76,13 +74,9 @@ fn validate_request(config: &Config, request_body: &ExtKeysRequest) -> Result<()
         return Err(ErrorResponse::from_status_code(
             StatusCode::BAD_REQUEST,
             "Invalid target_sae_ids. This instance is not configured for one or more of the supplied SAE IDs.",
-            [("target_sae_ids", missing_target_sae_ids.join(","))]
+            [("target_sae_ids", missing_target_sae_ids.join(","))],
         ));
     }
-
-    // TODO: Add extensions_mandatory and extensions_optional validation
-    // * If defined, ensure is a JSON object.
-    // * Ensure length is >= 1 and <= 1024.
 
     Ok(())
 }
